@@ -52,12 +52,9 @@ Ext.ux.GridPanel = Ext.extend(Ext.Panel, {
 	initComponent     : function() {
 		this.templates = this.initTemplates();
 		
-		Ext.ux.GridPanel.superclass.initComponent.call(this);
-	},
-	onRender          : function(ct, position) {
 		this.on("afterrender", this.renderView, this);
 		
-		Ext.ux.GridPanel.superclass.onRender.apply(this, arguments);
+		Ext.ux.GridPanel.superclass.initComponent.call(this);
 	},
 	getGridEl         : function() {
 		return this.body;
@@ -114,9 +111,8 @@ Ext.ux.GridPanel = Ext.extend(Ext.Panel, {
 		}
 		
 		Ext.apply(this, {
-			el           : el,
 			mainWrap     : mainWrap,
-			scroller     : scroller,
+			scrollerDOM  : scroller,
 			mainHd       : mainHd,
 			innerHd      : mainHd.child('div.x-grid3-header-inner').dom,
 			mainBody     : scrollerDom.child("div.x-grid3-body"),
@@ -160,8 +156,6 @@ Ext.ux.GridPanel = Ext.extend(Ext.Panel, {
 			index     = this.getCellIndex(header),
 			column    = colModel[index],
 			direction = this.sortDirection;
-		
-		console.log(column.mapping);
 		
 		this.sortDirection = (this.sortDirection === "ASC") ? "DESC" : "ASC";
 		
