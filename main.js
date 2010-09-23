@@ -47,7 +47,7 @@ Ext.setup({
 			{ company : "Wal-Mart Stores, Inc.",               price : 45.45, change : 0.73,  pct : 1.63,  updated : "9/1 12:00am" }
 		]
 	});
-	new Ext.ux.GridPanel({
+	new Ext.ux.TouchGridPanel({
 		fullscreen  : true,
 		store       : store,
 		dockedItems : [{

@@ -1,6 +1,6 @@
 Ext.ns("Ext.ux");
 
-Ext.ux.GridPanel = Ext.extend(Ext.Panel, {
+Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	cellSelector      : 'td.x-grid3-cell',
 	cellSelectorDepth : 4,
 	tdClass           : 'x-grid3-cell',
@@ -54,7 +54,7 @@ Ext.ux.GridPanel = Ext.extend(Ext.Panel, {
 		
 		this.on("afterrender", this.renderView, this);
 		
-		Ext.ux.GridPanel.superclass.initComponent.call(this);
+		Ext.ux.TouchGridPanel.superclass.initComponent.call(this);
 	},
 	getGridEl         : function() {
 		return this.body;
@@ -413,3 +413,5 @@ Ext.ux.GridPanel = Ext.extend(Ext.Panel, {
 		this.refresh();
 	}
 });
+
+Ext.reg("touchgridpanel", Ext.ux.TouchGridPanel);
