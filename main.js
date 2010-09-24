@@ -5,7 +5,7 @@ Ext.setup({
 	glossOnIcon         : true,
 	onReady             : function() {
 		Ext.regModel("TestModel", {
-			fields: [
+			fields     : [
 		        "company",
 		        "price",
 		        "change",
@@ -47,7 +47,7 @@ Ext.setup({
 			{ company : "Wal-Mart Stores, Inc.",               price : 45.45, change : 0.73,  pct : 1.63,  updated : "9/1 12:00am" }
 		]
 	});
-	new Ext.ux.TouchGridPanel({
+	var grid = new Ext.ux.TouchGridPanel({
 		fullscreen  : true,
 		store       : store,
 		dockedItems : [{
@@ -55,6 +55,9 @@ Ext.setup({
 			dock  : "top",
 			title : "Ext.ux.GridPanel by Mitchell Simoens"
 		}],
+		selModel    : {
+			singleSelect : true
+		},
 		colModel    : [{
 			header  : "Company",
 			width   : 250,
@@ -75,7 +78,18 @@ Ext.setup({
 			header  : "Last Updated",
 			width   : 200,
 			mapping : "updated"
-		}]
+		}],
+		listeners : {
+			beforerowselect : function() {
+				console.log("Before Row Select");
+			},
+			rowselect       : function() {
+				console.log("Row Select");
+			},
+			selectionchange : function() {
+				console.log("Selection Change");
+			}
+		}
 	});
 	}
 });

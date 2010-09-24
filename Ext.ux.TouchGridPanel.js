@@ -1,11 +1,19 @@
 Ext.ns("Ext.ux");
 
 Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
-	cellSelector      : 'td.x-grid3-cell',
+	cellSelector      : "td.x-grid3-cell",
 	cellSelectorDepth : 4,
-	tdClass           : 'x-grid3-cell',
-	hdCls             : 'x-grid3-hd',
+	rowSelector       : "div.x-grid3-row",
+	rowSelectorDepth  : 10,
+	rowBodySelector   : "div.x-grid3-row-body",
+	rowBodySelectorDepth : 10,
+	tdClass           : "x-grid3-cell",
+	hdCls             : "x-grid3-hd",
 	sortDirection     : null,
+	selModel          : {
+		type         : "row",
+		singleSelect : true
+	},
 	masterTpl         : new Ext.Template(
 		'<div class="x-grid3" hidefocus="true">',
 			'<div class="x-grid3-viewport" style="display:table;">',
@@ -50,7 +58,16 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		'</td>'
 	),
 	initComponent     : function() {
+		
+		Ext.applyIf(this.selModel, {
+			type         : "row",
+			singleSelect : true,
+			selected     : null
+		});
+		
 		this.templates = this.initTemplates();
+		
+		this.initSelModel();
 		
 		this.on("afterrender", this.renderView, this);
 		
@@ -76,7 +93,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			body       : this.bodyTpl,
 			header     : this.headerTpl,
 			headerCell : this.headerCellTpl,
-			row        : new Ext.Template('<div class="x-grid3-row {alt}" style="{tstyle}">' + innerText + '</div>'),
+			row        : new Ext.Template('<div class="x-grid3-row {alt}" style="{tstyle}" selected=false>' + innerText + '</div>'),
 			rowInner   : new Ext.Template(innerText),
 			cell       : this.cellTpl,
 		});
@@ -112,7 +129,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		
 		Ext.apply(this, {
 			mainWrap     : mainWrap,
-			scrollerDOM  : scroller,
+			scrollerEl   : scroller,
 			mainHd       : mainHd,
 			innerHd      : mainHd.child('div.x-grid3-header-inner').dom,
 			mainBody     : scrollerDom.child("div.x-grid3-body"),
@@ -143,6 +160,14 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 	afterRenderUI     : function() {
 		this.initElements();
+		
+		var c = this.getGridEl();
+		
+		this.mon(c, {
+			scope: this,
+			click: this.onClick
+		});
+		
 		this.store.on({
 			scope : this,
 			datachanged: this.onDataChange
@@ -161,6 +186,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		
 		this.store.sort(column.mapping, this.sortDirection);
 	},
+	onClick           : function(e) {
+		this.processEvent("click", e);
+	},
 	renderHeaders     : function() {
 		 var colModel   = this.colModel,
          	templates  = this.templates,
@@ -174,9 +202,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		 
 		for (i = 0; i < colCount; i++) {
 			if (i == 0) {
-				cssCls = 'x-grid3-cell-first ';
+				cssCls = "x-grid3-cell-first ";
 			} else {
-				cssCls = i == last ? 'x-grid3-cell-last ' : '';
+				cssCls = i == last ? "x-grid3-cell-last " : "";
 			}
 			
 			id = colModel[i].id || Ext.id();
@@ -184,14 +212,14 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			
 			properties = {
 				id     : id,
-				value  : colModel[i].header || '',
+				value  : colModel[i].header || "",
 				style  : this.getColumnStyle(i, true),
 				css    : cssCls,
 				tooltip: this.getColumnTooltip(i)
 			};
 			
-			if (colModel[i].align == 'right') {
-				properties.istyle = 'padding-right: 16px;';
+			if (colModel[i].align == "right") {
+				properties.istyle = "padding-right: 16px;";
 			} else {
 				delete properties.istyle;
 			}
@@ -221,7 +249,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		style += String.format("width: {0};", this.getColumnWidth(colIndex)+"px");
 		
 		if (colModel[colIndex].hidden) {
-			style += 'display: none; ';
+			style += "display: none; ";
 		}
 		
 		if (align) {
@@ -248,9 +276,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		var tooltip = this.colModel[colIndex].tooltip;
 		if (tooltip) {
 			if (Ext.QuickTips.isEnabled()) {
-				return 'ext:qtip="' + tooltip + '"';
+				return "ext:qtip='" + tooltip + "'";
 			} else {
-				return 'title="' + tooltip + '"';
+				return "title='" + tooltip + "'";
 			}
 		}
 		
@@ -261,7 +289,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 	hasRows           : function() {
 		var fc = this.mainBody.dom.firstChild;
-		return fc && fc.nodeType == 1 && fc.className != 'x-grid-empty';
+		return fc && fc.nodeType == 1 && fc.className != "x-grid-empty";
 	},
 	renderRows        : function(startRow, endRow) {
 		var startRow = startRow || 0,
@@ -277,7 +305,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			colCount = this.colModel.length,
 			columns = this.colModel,
 			last = colCount - 1,
-			tstyle = 'width:' + this.getTotalWidth() + 'px;',
+			tstyle = "width:" + this.getTotalWidth() + "px;",
 			rowParams = {tstyle: tstyle},
 			rowTemplate = this.templates.row,
 			meta = {},
@@ -293,15 +321,15 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				column = columns[i];
 				
 				meta.id    = column.id;
-				meta.css   = i === 0 ? 'x-grid3-cell-first ' : (i == last ? 'x-grid3-cell-last ' : '');
-				meta.attr  = meta.cellAttr = '';
+				meta.css   = i === 0 ? "x-grid3-cell-first " : (i == last ? "x-grid3-cell-last " : "");
+				meta.attr  = meta.cellAttr = "";
 				meta.style = column.style || "";
 				meta.value = record.get(column.mapping);
 				
 				meta.style += " width: " + column.width + "px;";
 				
 				if (Ext.isEmpty(meta.value)) {
-					meta.value = '&#160;';
+					meta.value = "&#160;";
 				}
 				
 				colBuffer[colBuffer.length] = this.templates.cell.apply(meta);
@@ -311,16 +339,16 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			
 			rowParams.cols = colCount;
 			
-			rowParams.alt   = alt.join(' ');
-			rowParams.cells = colBuffer.join('');
+			rowParams.alt   = alt.join(" ");
+			rowParams.cells = colBuffer.join("");
 			
 			rowBuffer[rowBuffer.length] = rowTemplate.apply(rowParams);
 		}
 		
-		return rowBuffer.join('');
+		return rowBuffer.join("");
 	},
 	refresh           : function(headersToo) {
-		this.fireEvent('beforerefresh', this);
+		this.fireEvent("beforerefresh", this);
 
 		var result = this.renderBody();
 		
@@ -331,10 +359,10 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		}
 		this.processRows(0, true);
 		this.applyEmptyText();
-		this.fireEvent('refresh', this);
+		this.fireEvent("refresh", this);
 	},
 	renderBody        : function(){
-		var markup = this.renderRows() || '&#160;';
+		var markup = this.renderRows() || "&#160;";
 		return this.templates.body.apply({rows: markup});
 	},
 	processRows       : function(startRow, skipStripe) {
@@ -354,9 +382,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			if (row) {
 				row.rowIndex = i;
 				if (!skipStripe) {
-					row.className = row.className.replace(this.rowClsRe, ' ');
+					row.className = row.className.replace(this.rowClsRe, " ");
 					if ((i + 1) % 2 === 0){
-						row.className += ' x-grid3-row-alt';
+						row.className += " x-grid3-row-alt";
 					}
 				}
 			}
@@ -371,18 +399,60 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 	applyEmptyText    : function() {
 		if (this.emptyText && !this.hasRows()) {
-			this.mainBody.update('<div class="x-grid-empty">' + this.emptyText + '</div>');
+			this.mainBody.update("<div class='x-grid-empty'>" + this.emptyText + "</div>");
 		}
+	},
+	findHeaderIndex : function(el){
+		return this.findCellIndex(el, this.hdCls);
 	},
 	findHeaderCell    : function(el) {
 		var cell = this.findCell(el);
 		return cell && this.fly(cell).hasClass(this.hdCls) ? cell : null;
+	},
+	findRowIndex : function(el) {
+		var row = this.findRow(el);
+		return row ? row.rowIndex : false;
+	},
+	findRow : function(el) {
+		if (!el) {
+			return false;
+		}
+		return this.fly(el).findParent(this.rowSelector, this.rowSelectorDepth);
+	},
+	findRowBody : function(el) {
+		if (!el) {
+			return false;
+		}
+		
+		return this.fly(el).findParent(this.rowBodySelector, this.rowBodySelectorDepth);
 	},
 	findCell          : function(el) {
 		if (!el) {
 			return false;
 		}
 		return this.fly(el).findParent(this.cellSelector, this.cellSelectorDepth);
+	},
+	findCellIndex : function(el, requiredCls) {
+		var cell = this.findCell(el),
+			hasCls;
+		
+		if (cell) {
+			hasCls = this.fly(cell).hasClass(requiredCls);
+			if (!requiredCls || hasCls) {
+				return this.getCellIndex(cell);
+			}
+		}
+		return false;
+	},
+	getCellIndex : function(el) {
+		if (el) {
+			var match = el.className.match(this.colRe);
+			
+			if (match && match[1]) {
+				return this.getIndexById(match[1]);
+			}
+		}
+		return false;
 	},
 	fly               : function(el) {
 		if (!this._flyweight) {
@@ -411,6 +481,69 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 	onDataChange      : function() {
 		this.refresh();
+	},
+	processEvent : function(name, e) {
+		var target = e.getTarget(),
+			header = this.findHeaderIndex(target),
+			row, cell, col, body;
+		
+		this.fireEvent(name, e);
+		
+		if (header !== false) {
+			this.fireEvent("header" + name, this, header, e);
+		} else {
+			row = this.findRowIndex(target);
+			if (row !== false) {
+				cell = this.findCellIndex(target);
+				if (cell !== false) {
+					if (this.fireEvent("cell" + name, this, row, cell, e) !== false) {
+						this.fireEvent("row" + name, this, row, e);
+					}
+				} else {
+					if (this.fireEvent("row" + name, this, row, e) !== false) {
+						(body = this.findRowBody(target)) && grid.fireEvent("rowbody" + name, this, row, e);
+					}
+				}
+			} else {
+				this.fireEvent("container" + name, this, e);
+			}
+		}
+	},
+	initSelModel      : function() {
+		this.initRowSelModel();
+	},
+	initRowSelModel   : function() {
+		this.on("rowclick", this.onRowClickSelModel, this);
+	},
+	onRowClickSelModel : function(grid, row, e) {
+		var target        = e.getTarget(),
+			row           = Ext.get(this.findRow(target)),
+			selected      = row.getAttribute("selected");
+		
+		if (this.selModel.singleSelect) {
+			if (this.selModel.selected !== null && this.selModel.selected !== row) {
+				this.selModel.selected.set({
+					selected : false
+				});
+			}
+			this.selModel.selected = row;
+		}
+		
+		row.set({
+			selected : (selected === "true") ? false : true
+		});
+	},
+	clearSelections   : function() {
+		var el = Ext.get(this.scrollerEl.dom.children[0]),
+			nodes = el.dom.children,
+			i, node;
+		
+		for (i = 0; i<nodes.length; i++) {
+			node = Ext.get(nodes[i]);
+			node.set({
+				selected : false
+			});
+		}
 	}
 });
 

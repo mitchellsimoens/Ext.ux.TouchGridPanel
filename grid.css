@@ -32,6 +32,15 @@
 	-moz-user-focus: normal;
 }
 
+.x-grid3-row[selected=true] {
+	-webkit-transform: translate3d(0, 0, 0);
+	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #7fb6e7), color-stop(2%, #2986d6), color-stop(100%, #1d5e96));
+	background-image: linear-gradient(top, #7fb6e7 0%, #2986d6 2%, #1d5e96 100%);
+	color: #fff;
+	border-color: #103656;
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+
 .x-grid3-row td, .x-grid3-summary-row td {
     line-height:13px;
     vertical-align: top;
