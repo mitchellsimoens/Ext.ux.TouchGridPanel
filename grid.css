@@ -257,3 +257,7 @@
 .x-grid-empty {
     padding:10px;
 }
+
+.x-grid3-body .x-grid3-row:nth-child(odd) {
+	background-color: #f0f0f0;
+}
