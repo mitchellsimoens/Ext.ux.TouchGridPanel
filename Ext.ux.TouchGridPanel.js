@@ -510,28 +510,32 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		}
 	},
 	initSelModel      : function() {
-		this.initRowSelModel();
-	},
-	initRowSelModel   : function() {
 		this.on("rowclick", this.onRowClickSelModel, this);
 	},
-	onRowClickSelModel : function(grid, row, e) {
-		var target        = e.getTarget(),
-			row           = Ext.get(this.findRow(target)),
-			selected      = row.getAttribute("selected");
+	onRowClickSelModel : function(grid, index, e) {
+		var target    = e.getTarget(),
+			row       = Ext.get(this.findRow(target)),
+			selected  = row.getAttribute("selected"),
+			newSelect = (selected === "true") ? false : true,
+			deselect  = (newSelect === false) ? "de" : "",
+			r         = this.store.getAt(index);
 		
-		if (this.selModel.singleSelect) {
-			if (this.selModel.selected !== null && this.selModel.selected !== row) {
-				this.selModel.selected.set({
-					selected : false
-				});
+		if (this.fireEvent("beforerow"+deselect+"select", this, index, r) !== false) {
+			if (this.selModel.singleSelect) {
+				if (this.selModel.selected !== null && this.selModel.selected !== row) {
+					this.selModel.selected.set({
+						selected : false
+					});
+				}
+				this.selModel.selected = row;
 			}
-			this.selModel.selected = row;
+			
+			row.set({
+				selected : newSelect
+			});
+			this.fireEvent("row"+deselect+"select", this, index, r);
+		    this.fireEvent("selectionchange", this);
 		}
-		
-		row.set({
-			selected : (selected === "true") ? false : true
-		});
 	},
 	clearSelections   : function() {
 		var el = Ext.get(this.scrollerEl.dom.children[0]),
