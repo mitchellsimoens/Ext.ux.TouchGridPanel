@@ -59,7 +59,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		this.afterRenderUI();
 	},
 	afterRenderUI        : function() {
-		var header = Ext.get(Ext.get(this.body.dom.firstChild).dom.firstChild);
+		var header = Ext.get(this.body.dom.firstChild);
 		
 		this.mon(this.body, {
 			scope : this,
@@ -133,7 +133,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			return ;
 		}
 		
-		var el = Ext.get(Ext.get(this.body.dom.firstChild).dom.lastChild);
+		var el = this.body.child(".x-grid-rows");
+		
+		el.setStyle("padding-top", "0em");
 		
 		el.update(this.renderRows());
 		
