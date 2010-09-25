@@ -34,7 +34,7 @@ Ext.setup({
 				{ company : "Intel Corporation",                   price : 19.88, change : 0.31,  pct : 1.58,  updated : "9-1-2010" },
 				{ company : "International Business Machines",     price : 81.41, change : 0.44,  pct : 0.54,  updated : "9-1-2010" },
 				{ company : "Johnson &#38; Johnson",               price : 64.72, change : 0.06,  pct : 0.09,  updated : "9-1-2010" },
-				{ company : "JP Morgan &#38; Chase & Co",          price : 45.73, change : 0.07,  pct : 0.15,  updated : "9-1-2010" },
+				{ company : "JP Morgan &#38; Chase &#38; Co",      price : 45.73, change : 0.07,  pct : 0.15,  updated : "9-1-2010" },
 				{ company : "McDonald's Corporation",              price : 36.76, change : 0.86,  pct : 2.40,  updated : "9-1-2010" },
 				{ company : "Merck &#38; Co., Inc.",               price : 40.96, change : 0.41,  pct : 1.01,  updated : "9-1-2010" },
 				{ company : "Microsoft Corporation",               price : 25.84, change : 0.14,  pct : 0.54,  updated : "9-1-2010" },
@@ -67,7 +67,15 @@ Ext.setup({
 				width    : 150,
 				mapping  : "price",
 				renderer : function(value, record, rowIndex, colIndex, store) {
-					return value.toFixed(2);
+					if (value < 0) {
+						value *= -1;
+						value = value.toFixed(2);
+						return "<span style='color:red'>$" + value + "</style>";
+					} else if (value > 0) {
+						value = value.toFixed(2);
+						return "<span style='color:green'>$" + value + "</style>";
+					}
+					return "$"+value.toFixed(2);
 				}
 			},{
 				header   : "Change",
@@ -75,8 +83,11 @@ Ext.setup({
 				mapping  : "change",
 				renderer : function(value) {
 					if (value > 0) {
+						value = value.toFixed(2);
 						return '<span style="color:green;">' + value + '</span>';
 					} else if (value < 0) {
+						value *= -1;
+						value = value.toFixed(2);
 						return '<span style="color:red;">' + value + '</span>';
 					}
 					return value;
@@ -87,11 +98,14 @@ Ext.setup({
 				mapping  : "pct",
 				renderer : function(value) {
 					if (value > 0) {
+						value = value.toFixed(2);
 						return '<span style="color:green;">' + value + '%</span>';
 					} else if (value < 0) {
+						value *= -1;
+						value = value.toFixed(2);
 						return '<span style="color:red;">' + value + '%</span>';
 					}
-					return value;
+					return value+"%";
 				}
 			},{
 				header   : "Last Updated",
