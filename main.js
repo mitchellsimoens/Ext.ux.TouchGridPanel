@@ -53,7 +53,7 @@ Ext.setup({
 			dockedItems : [{
 				xtype : "toolbar",
 				dock  : "top",
-				title : "Ext.ux.GridPanel by Mitchell Simoens"
+				title : "Ext.ux.TouchGridPanel by Mitchell Simoens"
 			}],
 			selModel    : {
 				singleSelect : true
