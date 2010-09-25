@@ -1,64 +1,20 @@
 Ext.ns("Ext.ux");
 
 Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
-	cellSelector      : "td.x-grid3-cell",
-	cellSelectorDepth : 4,
-	rowSelector       : "div.x-grid3-row",
-	rowSelectorDepth  : 10,
-	rowBodySelector   : "div.x-grid3-row-body",
-	rowBodySelectorDepth : 10,
-	tdClass           : "x-grid3-cell",
-	hdCls             : "x-grid3-hd",
-	sortDirection     : null,
-	selModel          : {
+	sortDirection        : null,
+	selModel             : {
 		type         : "row",
 		singleSelect : true
 	},
-	masterTpl         : new Ext.Template(
-		'<div class="x-grid3" hidefocus="true">',
-			'<div class="x-grid3-viewport" style="display:table;">',
-				'<div class="x-grid3-header-row" style="display:table-row;">',
-					'<div class="x-grid3-header">',
-						'<div class="x-grid3-header-inner">',
-							'<div class="x-grid3-header-offset" style="{ostyle}">{header}</div>',
-						'</div>',
-						'<div class="x-clear"></div>',
-					'</div>',
-				'</div>',
-				'<div class="x-grid3-scroller-row" style="display:table-row;">',
-					'<div class="x-grid3-scroller">',
-						'<div class="x-grid3-body" style="{bstyle}">{body}</div>',
-						'<a href="#" class="x-grid3-focus" tabIndex="-1"></a>',
-					'</div>',
-				'</div>',
-			'</div>',
-			'<div class="x-grid3-resize-marker">&#160;</div>',
-			'<div class="x-grid3-resize-proxy">&#160;</div>',
-		'</div>'
-	),
-	headerTpl         : new Ext.Template(
-		'<table border="0" cellspacing="0" cellpadding="0" style="{tstyle}">',
-			'<thead>',
-				'<tr class="x-grid3-hd-row">{cells}</tr>',
-			'</thead>',
-		'</table>'
-	),
-	headerCellTpl     : new Ext.Template(
-		'<td class="x-grid3-hd x-grid3-cell x-grid3-td-{id} {css}" style="{style}">',
-			'<div {tooltip} {attr} class="x-grid3-hd-inner x-grid3-hd-{id}" unselectable="on" style="{istyle}">', 
-				'{value}',
-				'<img class="x-grid3-sort-icon" src="', Ext.BLANK_IMAGE_URL, '" />',
-			'</div>',
-		'</td>'
-	),
-	bodyTpl           : new Ext.Template('{rows}'),
-	cellTpl           : new Ext.Template(
-		'<td class="x-grid3-col x-grid3-cell x-grid3-td-{id} {css}" style="{style}" tabIndex="0" {cellAttr}>',
-			'<div class="x-grid3-cell-inner x-grid3-col-{id}" unselectable="on" {attr}>{value}</div>',
-		'</td>'
-	),
-	initComponent     : function() {
-		
+	hdCls                : "x-grid-hd-cell",
+	cellSelector         : ".x-grid-cell",
+	cellSelectorDepth    : 1,
+	rowSelector          : ".x-grid-row",
+	rowSelectorDepth     : 2,
+	rowBodySelector      : ".x-grid-cell",
+	rowBodySelectorDepth : 10,
+	colRe                : new RegExp('x-grid-col-([^\\s]+)', ''),
+	initComponent        : function() {
 		Ext.applyIf(this.selModel, {
 			type         : "row",
 			singleSelect : true,
@@ -73,419 +29,114 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		
 		Ext.ux.TouchGridPanel.superclass.initComponent.call(this);
 	},
-	getGridEl         : function() {
-		return this.body;
-	},
-	initTemplates     : function() {
-		var templates = this.templates || {},
-			template,
-			name,
-			innerText = [
-				'<table class="x-grid3-row-table" border="0" cellspacing="0" cellpadding="0" style="{tstyle}">',
-					'<tbody>',
-						'<tr>{cells}</tr>',
-					'</tbody>',
-				'</table>'
-			].join("");
+	initTemplates        : function() {
+		var templates = {};
 		
-		Ext.applyIf(templates, {
-			master     : this.masterTpl,
-			body       : this.bodyTpl,
-			header     : this.headerTpl,
-			headerCell : this.headerCellTpl,
-			row        : new Ext.Template('<div class="x-grid3-row {alt}" style="{tstyle}" selected=false>' + innerText + '</div>'),
-			rowInner   : new Ext.Template(innerText),
-			cell       : this.cellTpl,
-		});
+		templates.masterTpl    = new Ext.Template('<div class="x-grid-body">{header}{rows}</div>');
+		templates.headerTpl    = new Ext.Template('<div class="x-grid-header" style="{style}">{rows}</div>');
+		templates.headerRowTpl = new Ext.Template('<div class="x-grid-cell x-grid-hd-cell x-grid-col-{id}">{text}</div>');
+		templates.rowsTpl      = new Ext.Template('<div class="x-grid-rows">{cols}</div>');
+		templates.colsTpl      = new Ext.Template('<div class="x-grid-row" rowIndex="{rowIndex}" selected="false" style="{style}">{cells}</div>');
+		templates.cellsTpl     = new Ext.Template('<div class="x-grid-cell x-grid-col-{id}"">{text}</div>');
 		
-		for (name in templates) {
-            template = templates[name];
-            
-            if (template && Ext.isFunction(template.compile) && !template.compiled) {
-                template.disableFormats = true;
-                template.compile();
-            }
-        }
-		this.colRe = new RegExp('x-grid3-td-([^\\s]+)', '');
 		return templates;
 	},
-	initElements      : function() {
-		var Element     = Ext.Element,
-			el          = Ext.get(this.getGridEl().dom.firstChild),
-			mainWrap    = new Element(el.child("div.x-grid3-viewport")),
-			firstRow    = new Element(mainWrap.child("div.x-grid3-header-row")),
-			secondRow   = new Element(mainWrap.child("div.x-grid3-scroller-row")),
-			mainHd      = new Element(firstRow.child("div.x-grid3-header")),
-			scroller    = new Element(secondRow.child("div.x-grid3-scroller")),
-			scrollerDom = new Element(Ext.Element.fly(scroller).dom);
+	renderView           : function() {
+		var templates = this.templates;
 		
-		if (this.hideHeaders) {
-			mainHd.setDisplayed(false);
-		}
-		
-		if (this.forceFit) {
-			scroller.setStyle('overflow-x', 'hidden');
-		}
-		
-		Ext.apply(this, {
-			mainWrap     : mainWrap,
-			scrollerEl   : scroller,
-			mainHd       : mainHd,
-			innerHd      : mainHd.child('div.x-grid3-header-inner').dom,
-			mainBody     : scrollerDom.child("div.x-grid3-body"),
-			focusEl      : scrollerDom.child('a'),
-			resizeMarker : new Element(el.child('div.x-grid3-resize-marker')),
-			resizeProxy  : new Element(el.child('div.x-grid3-resize-proxy'))
+		this.body.dom.innerHTML = templates.masterTpl.apply({
+			header : this.renderHeaders(),
+			rows   : this.renderRows()
 		});
-		
-		this.focusEl.on("click", Ext.emptyFn, this);
-	},
-	renderView        : function() {
-		this.getGridEl().dom.innerHTML = this.renderUI();
 		
 		this.afterRenderUI();
-		
-		this.refresh();
 	},
-	renderUI          : function() {
-		var templates = this.templates,
-			width = this.getTotalWidth();
+	afterRenderUI        : function() {
+		var header = Ext.get(Ext.get(this.body.dom.firstChild).dom.firstChild);
 		
-		return templates.master.apply({
-			body   : templates.body.apply({rows:'&#160;'}),
-			header : this.renderHeaders(),
-			ostyle : 'width:' + width + ';',
-			bstyle : 'width:' + width  + ';'
-		});
-	},
-	afterRenderUI     : function() {
-		this.initElements();
-		
-		var c = this.getGridEl();
-		
-		this.mon(c, {
-			scope: this,
-			click: this.onClick
+		this.mon(this.body, {
+			scope : this,
+			click : this.onClick
 		});
 		
 		this.store.on({
-			scope : this,
-			datachanged: this.onDataChange
+			scope       : this,
+			datachanged : this.onDataChange
 		});
 		
-		Ext.fly(this.innerHd).on('click', this.handleHdDown, this);
+		Ext.fly(header).on('click', this.handleHdDown, this);
 	},
-	handleHdDown : function(e, target) {
-		var colModel  = this.colModel,
-			header    = this.findHeaderCell(target),
-			index     = this.getCellIndex(header),
-			column    = colModel[index],
-			direction = this.sortDirection;
+	renderHeaders        : function() {
+		var headerArr = [],
+			i         = 0,
+			colModel  = this.colModel,
+			colNum    = colModel.length,
+			templates = this.templates;
 		
-		this.sortDirection = (this.sortDirection === "ASC") ? "DESC" : "ASC";
-		
-		this.store.sort(column.mapping, this.sortDirection);
-	},
-	onClick           : function(e) {
-		this.processEvent("click", e);
-	},
-	renderHeaders     : function() {
-		 var colModel   = this.colModel,
-         	templates  = this.templates,
-         	headerTpl  = templates.headerCell,
-         	properties = {},
-         	colCount   = colModel.length,
-         	last       = colCount - 1,
-         	cells      = [],
-         	i, id,
-         	cssCls;
-		 
-		for (i = 0; i < colCount; i++) {
-			if (i == 0) {
-				cssCls = "x-grid3-cell-first ";
-			} else {
-				cssCls = i == last ? "x-grid3-cell-last " : "";
-			}
-			
+		for (; i < colNum; i++) {
 			id = colModel[i].id || Ext.id();
 			this.colModel[i].id = id;
-			
-			properties = {
-				id     : id,
-				value  : colModel[i].header || "",
-				style  : this.getColumnStyle(i, true),
-				css    : cssCls,
-				tooltip: this.getColumnTooltip(i)
-			};
-			
-			if (colModel[i].align == "right") {
-				properties.istyle = "padding-right: 16px;";
-			} else {
-				delete properties.istyle;
-			}
-			
-			cells[i] = headerTpl.apply(properties);
+			headerArr[headerArr.length] = templates.headerRowTpl.apply({
+				id   : id,
+				text : colModel[i].header
+			});
 		}
 		
-		return templates.header.apply({
-			cells : cells.join(""),
-			tstyle: String.format("width: {0};", this.getTotalWidth() + "px")
+		return templates.headerTpl.apply({
+			rows  : headerArr.join(""),
+			style : "-webkit-column-count: "+colNum+";"
 		});
 	},
-	getTotalWidth     : function(includeHidden) {
-		var totalWidth = 0;
-		for (var i = 0, len = this.colModel.length; i < len; i++) {
-			if (includeHidden || !this.colModel[i].hidden) {
-				totalWidth += this.getColumnWidth(i);
-			}
-		}
-		return totalWidth;
-	},
-	getColumnStyle    : function(colIndex, isHeader) {
-		var colModel  = this.colModel,
-			style     = isHeader ? '' : colModel[colIndex].cls || '',
-			align     = colModel[colIndex].align || "left";
-		
-		style += String.format("width: {0};", this.getColumnWidth(colIndex)+"px");
-		
-		if (colModel[colIndex].hidden) {
-			style += "display: none; ";
-		}
-		
-		if (align) {
-			style += String.format("text-align: {0};", align);
-		}
-		
-		return style;
-	},
-	getColumnWidth    : function(colIndex) {
-		var columnWidth = this.colModel[colIndex].width,
-			borderWidth = 1;
-		
-		if (Ext.isNumber(columnWidth)) {
-			if (Ext.isBorderBox || (Ext.isWebKit && !Ext.isSafari2)) {
-				return columnWidth;
-			} else {
-				return Math.max(columnWidth - borderWidth, 0);
-			}
-		} else {
-			return columnWidth;
-		}
-	},
-	getColumnTooltip  : function(colIndex) {
-		var tooltip = this.colModel[colIndex].tooltip;
-		if (tooltip) {
-			if (Ext.QuickTips.isEnabled()) {
-				return "ext:qtip='" + tooltip + "'";
-			} else {
-				return "title='" + tooltip + "'";
-			}
-		}
-		
-		return '';
-	},
-	getRows           : function() {
-		return this.hasRows() ? this.mainBody.dom.childNodes : [];
-	},
-	hasRows           : function() {
-		var fc = this.mainBody.dom.firstChild;
-		return fc && fc.nodeType == 1 && fc.className != "x-grid-empty";
-	},
-	renderRows        : function(startRow, endRow) {
+	renderRows           : function(startRow, endRow) {
 		var startRow = startRow || 0,
-        	endRow   = Ext.isDefined(endRow) ? endRow : this.store.getCount() - 1,
-        	records  = this.store.getRange(startRow, endRow);
+			endRow   = Ext.isDefined(endRow) ? endRow : this.store.getCount() - 1,
+			records  = this.store.getRange(startRow, endRow);
 		
-		return this.doRender(records, startRow);
+		return this.doRowRender(records, startRow);
 	},
-	doRender          : function(records, startRow) {
-		var colBuffer = [],
-			rowBuffer = [],
-			len = records.length,
-			colCount = this.colModel.length,
-			columns = this.colModel,
-			last = colCount - 1,
-			tstyle = "width:" + this.getTotalWidth() + "px;",
-			rowParams = {tstyle: tstyle},
-			rowTemplate = this.templates.row,
-			meta = {},
-			i, j, column, record, alt;
+	doRowRender          : function(records, startRow) {
+		var i, x, colsArr,
+			rowsArr   = [],
+			numRecs   = records.length,
+			colModel  = this.colModel,
+			colNum    = colModel.length,
+			templates = this.templates;
 		
-		for (j = 0; j < len; j++) {
-			record    = records[j];
-			colBuffer = [];
-			
-			rowIndex = j + startRow;
-			
-			for (i = 0; i < colCount; i++) {
-				column = columns[i];
-				
-				meta.id    = column.id;
-				meta.css   = i === 0 ? "x-grid3-cell-first " : (i == last ? "x-grid3-cell-last " : "");
-				meta.attr  = meta.cellAttr = "";
-				meta.style = column.style || "";
-				meta.value = record.get(column.mapping);
-				
-				meta.style += " width: " + column.width + "px;";
-				
-				if (Ext.isEmpty(meta.value)) {
-					meta.value = "&#160;";
-				}
-				
-				colBuffer[colBuffer.length] = this.templates.cell.apply(meta);
+		for (x = 0; x < numRecs; x++) {
+			colsArr = [];
+			for (i = 0; i < colNum; i++) {
+				colsArr[colsArr.length] = templates.cellsTpl.apply({
+					id   : colModel[i].id,
+					text : records[x].get(colModel[i].mapping),
+				});
 			}
-			
-			alt = [];
-			
-			rowParams.cols = colCount;
-			
-			rowParams.alt   = alt.join(" ");
-			rowParams.cells = colBuffer.join("");
-			
-			rowBuffer[rowBuffer.length] = rowTemplate.apply(rowParams);
+			rowsArr[rowsArr.length] = templates.colsTpl.apply({
+				cells    : colsArr.join(""),
+				rowIndex : x,
+				style    : "-webkit-column-count: "+colNum+";"
+			});
 		}
 		
-		return rowBuffer.join("");
+		return templates.rowsTpl.apply({
+			cols : rowsArr.join("")
+		});
 	},
-	refresh           : function(headersToo) {
-		this.fireEvent("beforerefresh", this);
-
-		var result = this.renderBody();
-		
-		this.mainBody.update(result).setWidth(this.getTotalWidth());
-		if (headersToo === true) {
-//			this.updateHeaders();
-//			this.updateHeaderSortState();
+	refresh              : function() {
+		if (this.fireEvent("beforerefresh", this) === false) {
+			return ;
 		}
-		this.processRows(0, true);
-		this.applyEmptyText();
+		
+		var el = Ext.get(Ext.get(this.body.dom.firstChild).dom.lastChild);
+		
+		el.update(this.renderRows());
+		
 		this.fireEvent("refresh", this);
 	},
-	renderBody        : function(){
-		var markup = this.renderRows() || "&#160;";
-		return this.templates.body.apply({rows: markup});
-	},
-	processRows       : function(startRow, skipStripe) {
-		if (!this.store || this.store.getCount() < 1) {
-			return;
-		}
-		
-		var rows   = this.getRows(),
-			length = rows.length,
-			row, i;
-		
-		skipStripe = skipStripe || !this.grid.stripeRows;
-		startRow   = startRow   || 0;
-		
-		for (i = 0; i < length; i++) {
-			row = rows[i];
-			if (row) {
-				row.rowIndex = i;
-				if (!skipStripe) {
-					row.className = row.className.replace(this.rowClsRe, " ");
-					if ((i + 1) % 2 === 0){
-						row.className += " x-grid3-row-alt";
-					}
-				}
-			}
-		}
-		
-		// add first/last-row classes
-		if (startRow === 0) {
-			Ext.fly(rows[0]).addClass(this.firstRowCls);
-		}
-		
-		Ext.fly(rows[length - 1]).addClass(this.lastRowCls);
-	},
-	applyEmptyText    : function() {
-		if (this.emptyText && !this.hasRows()) {
-			this.mainBody.update("<div class='x-grid-empty'>" + this.emptyText + "</div>");
-		}
-	},
-	findHeaderIndex : function(el){
-		return this.findCellIndex(el, this.hdCls);
-	},
-	findHeaderCell    : function(el) {
-		var cell = this.findCell(el);
-		return cell && this.fly(cell).hasClass(this.hdCls) ? cell : null;
-	},
-	findRowIndex : function(el) {
-		var row = this.findRow(el);
-		return row ? row.rowIndex : false;
-	},
-	findRow : function(el) {
-		if (!el) {
-			return false;
-		}
-		return this.fly(el).findParent(this.rowSelector, this.rowSelectorDepth);
-	},
-	findRowBody : function(el) {
-		if (!el) {
-			return false;
-		}
-		
-		return this.fly(el).findParent(this.rowBodySelector, this.rowBodySelectorDepth);
-	},
-	findCell          : function(el) {
-		if (!el) {
-			return false;
-		}
-		return this.fly(el).findParent(this.cellSelector, this.cellSelectorDepth);
-	},
-	findCellIndex : function(el, requiredCls) {
-		var cell = this.findCell(el),
-			hasCls;
-		
-		if (cell) {
-			hasCls = this.fly(cell).hasClass(requiredCls);
-			if (!requiredCls || hasCls) {
-				return this.getCellIndex(cell);
-			}
-		}
-		return false;
-	},
-	getCellIndex : function(el) {
-		if (el) {
-			var match = el.className.match(this.colRe);
-			
-			if (match && match[1]) {
-				return this.getIndexById(match[1]);
-			}
-		}
-		return false;
-	},
-	fly               : function(el) {
-		if (!this._flyweight) {
-			this._flyweight = new Ext.Element.Flyweight(document.body);
-		}
-		this._flyweight.dom = el;
-		return this._flyweight;
-	},
-	getCellIndex : function(el) {
-		if (el) {
-			var match = el.className.match(this.colRe);
-			
-			if (match && match[1]) {
-				return this.getIndexById(match[1]);
-			}
-		}
-		return false;
-	},
-	getIndexById : function(id) {
-		for (var i = 0, len = this.colModel.length; i < len; i++) {
-			if (this.colModel[i].id == id) {
-				return i;
-			}
-		}
-		return -1;
-	},
-	onDataChange      : function() {
-		this.refresh();
-	},
-	processEvent : function(name, e) {
-		var target = e.getTarget(),
-			header = this.findHeaderIndex(target),
-			row, cell, col, body;
+	
+	processEvent         : function(name, e) {
+		var row, cell, col, body,
+			target = e.getTarget(),
+			header = this.findHeaderIndex(target);
 		
 		this.fireEvent(name, e);
 		
@@ -501,7 +152,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 					}
 				} else {
 					if (this.fireEvent("row" + name, this, row, e) !== false) {
-						(body = this.findRowBody(target)) && grid.fireEvent("rowbody" + name, this, row, e);
+						(body = this.findRowBody(target)) && this.fireEvent("rowbody" + name, this, row, e);
 					}
 				}
 			} else {
@@ -509,10 +160,96 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			}
 		}
 	},
-	initSelModel      : function() {
+	
+	//event handlers
+	handleHdDown         : function(e, target) {
+		var colModel  = this.colModel,
+			index     = this.getCellIndex(target),
+			column    = colModel[index],
+			direction = this.sortDirection;
+		
+		this.sortDirection = (this.sortDirection === "ASC") ? "DESC" : "ASC";
+		
+		this.store.sort(column.mapping, this.sortDirection);
+	},
+	onDataChange         : function() {
+		this.refresh();
+	},
+	onClick              : function(e) {
+		this.processEvent("click", e);
+	},
+	
+	//utility functions
+	fly                  : function(el) {
+		if (!this._flyweight) {
+			this._flyweight = new Ext.Element.Flyweight(document.body);
+		}
+		this._flyweight.dom = el;
+		return this._flyweight;
+	},
+	getCellIndex         : function(el) {
+		if (el) {
+			var match = el.className.match(this.colRe);
+			
+			if (match && match[1]) {
+				return this.getIndexById(match[1]);
+			}
+		}
+		return false;
+	},
+	getIndexById         : function(id) {
+		for (var i = 0, len = this.colModel.length; i < len; i++) {
+			if (this.colModel[i].id == id) {
+				return i;
+			}
+		}
+		return -1;
+	},
+	findCellIndex        : function(el, requiredCls) {
+		var hasCls,
+			cell = this.findCell(el);
+		
+		if (cell) {
+			hasCls = this.fly(cell).hasClass(requiredCls);
+			if (!requiredCls || hasCls) {
+				return this.getCellIndex(cell);
+			}
+		}
+		return false;
+	},
+	findCell             : function(el) {
+		if (!el) {
+			return false;
+		}
+		return this.fly(el).findParent(this.cellSelector, this.cellSelectorDepth);
+	},
+	findRowIndex         : function(el) {
+		var row      = this.findRow(el),
+			rowIndex = Ext.get(row).getAttribute("rowIndex");
+		return row ? rowIndex : false;
+	},
+	findRow              : function(el) {
+		if (!el) {
+			return false;
+		}
+		return this.fly(el).findParent(this.rowSelector, this.rowSelectorDepth);
+	},
+	findHeaderIndex      : function(el) {
+		return this.findCellIndex(el, this.hdCls);
+	},
+	findRowBody          : function(el) {
+		if (!el) {
+			return false;
+		}
+		
+		return this.fly(el).findParent(this.rowBodySelector, this.rowBodySelectorDepth);
+	},
+	
+	//selection models
+	initSelModel         : function() {
 		this.on("rowclick", this.onRowClickSelModel, this);
 	},
-	onRowClickSelModel : function(grid, index, e) {
+	onRowClickSelModel   : function(grid, index, e) {
 		var target    = e.getTarget(),
 			row       = Ext.get(this.findRow(target)),
 			selected  = row.getAttribute("selected"),
@@ -537,10 +274,10 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		    this.fireEvent("selectionchange", this);
 		}
 	},
-	clearSelections   : function() {
-		var el = Ext.get(this.scrollerEl.dom.children[0]),
-			nodes = el.dom.children,
-			i, node;
+	clearSelections      : function() {
+		var i, node,
+			el    = Ext.get(this.scrollerEl.dom.children[0]),
+			nodes = el.dom.children;
 		
 		for (i = 0; i<nodes.length; i++) {
 			node = Ext.get(nodes[i]);

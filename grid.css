@@ -1,38 +1,31 @@
-/*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
- */
-/* Grid3 styles */
-.x-grid3 {
-	position:relative;
-	overflow:hidden;
+.x-grid-header {
+	line-height:15px;
+	vertical-align:middle;
+	line-height: 2em;
+	font-size: 1.2em;
+	text-align: center;
+	font-weight: bold;
+	color: #FFF;
+	text-shadow: rgba(0, 0, 0, 0.5) 0 -0.08em 0;
+	
+	-webkit-column-rule-width: 1px;
+	-webkit-column-rule-style: solid;
+	-webkit-column-rule-color: black;
+	
+	height: 2.5em;
+	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #9aa7b2), color-stop(2%, #647482), color-stop(100%, #434d57));
 }
-
-.x-grid-panel .x-panel-body {
-    overflow:hidden !important;
+.x-grid-row {
+	-webkit-column-rule-width: 1px;
+	-webkit-column-rule-style: solid;
+	-webkit-column-rule-color: black;
+	
+	border-bottom: 1px solid #000;
 }
-
-.x-grid-panel .x-panel-mc .x-panel-body {
-    border:1px solid;
+.x-grid-body .x-grid-row:nth-child(odd) {
+	background-color: #f0f0f0;
 }
-
-.x-grid3 table {
-    table-layout:fixed;
-}
-
-.x-grid3-viewport{
-	overflow:hidden;
-}
-
-.x-grid3-hd-row td, .x-grid3-row td, .x-grid3-summary-row td{
-    -moz-outline: none;
-    outline: none;
-	-moz-user-focus: normal;
-}
-
-.x-grid3-row[selected=true] {
+.x-grid-row[selected=true] {
 	-webkit-transform: translate3d(0, 0, 0);
 	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #7fb6e7), color-stop(2%, #2986d6), color-stop(100%, #1d5e96));
 	background-image: linear-gradient(top, #7fb6e7 0%, #2986d6 2%, #1d5e96 100%);
@@ -40,224 +33,12 @@
 	border-color: #103656;
 	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
 }
-
-.x-grid3-row td, .x-grid3-summary-row td {
-    line-height:13px;
-    vertical-align: top;
-	padding-left:1px;
-    -moz-user-select: none;
-    -khtml-user-select:none;
-    -webkit-user-select:ignore;
-}
-
-.x-grid3-cell{
-    -moz-user-select: none;
-    -khtml-user-select:none;
-    -webkit-user-select:ignore;
-}
-
-.x-grid3-hd-row {
+.x-grid-cell {
 	height: 2.5em;
-	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #9aa7b2), color-stop(2%, #647482), color-stop(100%, #434d57));
-}
-
-.x-grid3-hd-row td {
-    line-height:15px;
-    vertical-align:middle;
-    border-left:1px solid;
-    border-right:1px solid;
-	border-top: 1px solid;
-	line-height: 2em;
-	font-size: 1.2em;
-	text-align: center;
-	font-weight: bold;
-	color: #FFF;
-	text-shadow: rgba(0, 0, 0, 0.5) 0 -0.08em 0;
-	border-color: #000;
-}
-
-.x-grid3-row td {
+	
 	line-height:15px;
-    vertical-align:middle;
+	vertical-align:middle;
 	line-height: 2em;
 	font-size: 1em;
 	font-weight: bold;
-	border-color: #000;
-}
-
-.x-grid3-hd-row .x-grid3-marker-hd {
-    padding:3px;
-}
-
-.x-grid3-row .x-grid3-marker {
-    padding:3px;
-}
-
-.x-grid3-cell-inner, .x-grid3-hd-inner{
-	overflow:hidden;
-	-o-text-overflow: ellipsis;
-	text-overflow: ellipsis;
-    padding:3px 3px 3px 5px;
-    white-space: nowrap;
-}
-
-/* ActionColumn, reduce padding to accommodate 16x16 icons in normal row height */
-.x-action-col-cell .x-grid3-cell-inner {
-    padding-top: 1px;
-    padding-bottom: 1px;
-}
-
-.x-action-col-icon {
-    cursor: pointer;
-}
-
-.x-grid3-hd-inner {
-    position:relative;
-	cursor:inherit;
-	padding:4px 3px 4px 5px;
-}
-
-.x-grid3-row-body {
-    white-space:normal;
-}
-
-.x-grid3-body-cell {
-    -moz-outline:0 none;
-    outline:0 none;
-}
-
-.x-grid-row-loading {
-    background: no-repeat center center;
-}
-
-.x-grid-page {
-    overflow:hidden;
-}
-
-.x-grid3-row {
-	cursor: default;
-    border: 1px solid;
-    width:100%;
-	background-color: #F7F7F7;
-}
-
-.x-grid3-row-over {
-	border:1px solid;
-    background: repeat-x left top;
-}
-
-.x-grid3-resize-proxy {
-	width:1px;
-    left:0;
-	cursor: e-resize;
-	cursor: col-resize;
-	position:absolute;
-	top:0;
-	height:100px;
-	overflow:hidden;
-	visibility:hidden;
-	border:0 none;
-	z-index:7;
-}
-
-.x-grid3-resize-marker {
-	width:1px;
-	left:0;
-	position:absolute;
-	top:0;
-	height:100px;
-	overflow:hidden;
-	visibility:hidden;
-	border:0 none;
-	z-index:7;
-}
-
-.x-grid3-focus {
-	position:absolute;
-	left:0;
-	top:0;
-	width:1px;
-	height:1px;
-    line-height:1px;
-    font-size:1px;
-    -moz-outline:0 none;
-    outline:0 none;
-    -moz-user-select: text;
-    -khtml-user-select: text;
-    -webkit-user-select:ignore;
-}
-
-/* header styles */
-.x-grid3-header{
-	background: repeat-x 0 bottom;
-	cursor:default;
-    zoom:1;
-}
-
-.x-grid3-header-pop {
-    border-left:1px solid;
-    float:right;
-    clear:none;
-}
-
-.x-grid3-header-pop-inner {
-    border-left:1px solid;
-    width:14px;
-    height:19px;
-    background: transparent no-repeat center center;
-}
-
-.x-grid3-header-inner {
-    overflow:hidden;
-    zoom:1;
-    float:left;
-}
-
-.x-grid3-header-offset {
-    text-align: left;
-}
-
-.x-grid3-sort-icon{
-	background-repeat: no-repeat;
-	display: none;
-	height: 4px;
-	width: 13px;
-	margin-left:3px;
-	vertical-align: middle;
-}
-
-.sort-asc .x-grid3-sort-icon, .sort-desc .x-grid3-sort-icon {
-	display: inline;
-}
-
-/* Body Styles */
-.x-grid3-body {
-	zoom:1;
-}
-
-.x-grid3-scroller {
-	overflow:auto;
-    zoom:1;
-    position:relative;
-}
-
-.x-grid3-cell-text, .x-grid3-hd-text {
-	display: block;
-	padding: 3px 5px 3px 5px;
-	-moz-user-select: none;
-	-khtml-user-select: none;
-    -webkit-user-select:ignore;
-}
-
-/* dirty cells */
-.x-grid3-dirty-cell {
-    background: transparent no-repeat 0 0;
-}
-
-.x-grid-empty {
-    padding:10px;
-}
-
-.x-grid3-body .x-grid3-row:nth-child(odd) {
-	background-color: #f0f0f0;
 }
