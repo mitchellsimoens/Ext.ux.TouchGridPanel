@@ -4,6 +4,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	sortDirection        : null,
 	selModel             : {
 		type         : "row",
+		locked       : false,
 		singleSelect : true
 	},
 	hdCls                : "x-grid-hd-cell",
@@ -18,6 +19,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		Ext.applyIf(this.selModel, {
 			type         : "row",
 			singleSelect : true,
+			locked       : false,
 			selected     : null
 		});
 		
@@ -32,7 +34,6 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	initTemplates        : function() {
 		var templates = {};
 		
-		templates.masterTpl    = new Ext.Template('<div class="x-grid-body">{header}{rows}</div>');
 		templates.headerTpl    = new Ext.Template('<div class="x-grid-header" style="{style}">{rows}</div>');
 		templates.headerRowTpl = new Ext.Template('<div class="x-grid-cell x-grid-hd-cell x-grid-col-{id}">{text}</div>');
 		templates.rowsTpl      = new Ext.Template('<div class="x-grid-rows">{cols}</div>');
@@ -44,9 +45,15 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	renderView           : function() {
 		var templates = this.templates;
 		
-		this.body.dom.innerHTML = templates.masterTpl.apply({
-			header : this.renderHeaders(),
-			rows   : this.renderRows()
+		this.body.dom.innerHTML = this.renderHeaders()+this.renderRows();
+		
+		this.scroller = new Ext.util.Scroller(this.body.dom.lastChild, {
+			vertical: true,
+			listeners : {
+				scope       : this,
+				scrollstart : this.onScrollStart,
+				scrollend   : this.onScrollEnd
+			}
 		});
 		
 		this.afterRenderUI();
@@ -64,7 +71,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			datachanged : this.onDataChange
 		});
 		
-		Ext.fly(header).on('click', this.handleHdDown, this);
+		header.on("click", this.handleHdDown, this);
 	},
 	renderHeaders        : function() {
 		var headerArr = [],
@@ -160,6 +167,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			}
 		}
 	},
+	lockSelection        : function(lock) {
+		this.selModel.locked = lock;
+	},
 	
 	//event handlers
 	handleHdDown         : function(e, target) {
@@ -177,6 +187,12 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 	onClick              : function(e) {
 		this.processEvent("click", e);
+	},
+	onScrollStart        : function() {
+		this.lockSelection(true);
+	},
+	onScrollEnd          : function() {
+		this.lockSelection(false);
 	},
 	
 	//utility functions
@@ -250,6 +266,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		this.on("rowclick", this.onRowClickSelModel, this);
 	},
 	onRowClickSelModel   : function(grid, index, e) {
+		if (this.selModel.locked === true) {
+			return ;
+		}
 		var target    = e.getTarget(),
 			row       = Ext.get(this.findRow(target)),
 			selected  = row.getAttribute("selected"),

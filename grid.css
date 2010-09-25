@@ -1,4 +1,7 @@
 .x-grid-header {
+	position: absolute;
+	top: 0;
+	width: 100%;
 	line-height:15px;
 	vertical-align:middle;
 	line-height: 2em;
@@ -14,6 +17,11 @@
 	
 	height: 2.5em;
 	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #9aa7b2), color-stop(2%, #647482), color-stop(100%, #434d57));
+	z-index: 1;
+}
+.x-grid-rows {
+	padding-top: 3em;
+	z-index:0;
 }
 .x-grid-row {
 	-webkit-column-rule-width: 1px;
@@ -22,10 +30,13 @@
 	
 	border-bottom: 1px solid #000;
 }
-.x-grid-body .x-grid-row:nth-child(odd) {
+.x-grid-row:nth-child(even) {
+	background-color: #ffffff;
+}
+.x-grid-row:nth-child(odd) {
 	background-color: #f0f0f0;
 }
-.x-grid-row[selected=true] {
+.x-grid-row[selected$=true] {
 	-webkit-transform: translate3d(0, 0, 0);
 	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #7fb6e7), color-stop(2%, #2986d6), color-stop(100%, #1d5e96));
 	background-image: linear-gradient(top, #7fb6e7 0%, #2986d6 2%, #1d5e96 100%);
