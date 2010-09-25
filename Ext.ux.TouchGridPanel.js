@@ -15,6 +15,11 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	rowBodySelector      : ".x-grid-cell",
 	rowBodySelectorDepth : 10,
 	colRe                : new RegExp('x-grid-col-([^\\s]+)', ''),
+	defaultRenderer      : function(value) {
+		return value;
+	},
+	
+	
 	initComponent        : function() {
 		Ext.applyIf(this.selModel, {
 			type         : "row",
@@ -74,7 +79,8 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		header.on("click", this.handleHdDown, this);
 	},
 	renderHeaders        : function() {
-		var headerArr = [],
+		var id, renderer,
+			headerArr = [],
 			i         = 0,
 			colModel  = this.colModel,
 			colNum    = colModel.length,
@@ -83,6 +89,10 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		for (; i < colNum; i++) {
 			id = colModel[i].id || Ext.id();
 			this.colModel[i].id = id;
+			
+			renderer = colModel[i].renderer || this.defaultRenderer;
+			this.colModel[i].renderer = renderer;
+			
 			headerArr[headerArr.length] = templates.headerRowTpl.apply({
 				id   : id,
 				text : colModel[i].header
@@ -104,6 +114,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	doRowRender          : function(records, startRow) {
 		var i, x, colsArr,
 			rowsArr   = [],
+			meta      = {},
 			numRecs   = records.length,
 			colModel  = this.colModel,
 			colNum    = colModel.length,
@@ -111,11 +122,12 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		
 		for (x = 0; x < numRecs; x++) {
 			colsArr = [];
+			meta = {};
 			for (i = 0; i < colNum; i++) {
-				colsArr[colsArr.length] = templates.cellsTpl.apply({
-					id   : colModel[i].id,
-					text : records[x].get(colModel[i].mapping),
-				});
+				meta.id = colModel[i].id;
+				meta.text = colModel[i].renderer.call(this, records[x].get(colModel[i].mapping), records[x], x, i, this.store);
+				
+				colsArr[colsArr.length] = templates.cellsTpl.apply(meta);
 			}
 			rowsArr[rowsArr.length] = templates.colsTpl.apply({
 				cells    : colsArr.join(""),
