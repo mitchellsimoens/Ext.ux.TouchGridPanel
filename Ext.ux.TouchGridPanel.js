@@ -1,3 +1,16 @@
+/*
+    Author       : Mitchell Simoens
+    Site         : http://simoens.org/Sencha-Projects/demos/
+    Contact Info : mitchellsimoens@gmail.com
+    Purpose      : Creation of a grid for Sencha Touch
+	
+	License      : GPL v3 (http://www.gnu.org/licenses/gpl.html)
+    Warranty     : none
+    Price        : free
+    Version      : 1.2
+    Date         : 09/26/2010
+*/
+
 Ext.ns("Ext.ux");
 
 Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
