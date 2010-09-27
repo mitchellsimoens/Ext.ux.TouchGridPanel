@@ -2,14 +2,6 @@
 	position: absolute;
 	top: 0;
 	width: 100%;
-	line-height:15px;
-	vertical-align:middle;
-	line-height: 2em;
-	font-size: 1.2em;
-	text-align: center;
-	font-weight: bold;
-	color: #FFF;
-	text-shadow: rgba(0, 0, 0, 0.5) 0 -0.08em 0;
 	
 	-webkit-column-rule-width: 1px;
 	-webkit-column-rule-style: solid;
@@ -19,7 +11,7 @@
 	z-index: 1;
 }
 .x-grid-rows {
-	padding-top: 3.2em;
+	padding-top: 2em;
 	z-index:0;
 }
 .x-grid-row {
@@ -43,9 +35,12 @@
 	border-color: #103656;
 	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
 }
+.x-grid-hd-cell {
+	text-align: center;
+	color: #FFF;
+	text-shadow: rgba(0, 0, 0, 0.5) 0 -0.08em 0;
+}
 .x-grid-cell {
-	height: 2.65em;
-	
 	line-height:15px;
 	vertical-align:middle;
 	line-height: 2em;

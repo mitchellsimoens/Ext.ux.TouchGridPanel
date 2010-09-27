@@ -35,7 +35,15 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	/**
      * @private {String} Holds the CSS class for each cell
      **/
+	headerCls            : "x-grid-header",
+	/**
+     * @private {String} Holds the CSS class for each cell
+     **/
 	cellCls              : "x-grid-cell",
+	/**
+     * @private {String} Holds the CSS class for the rows
+     **/
+	rowsCls              : "x-grid-rows",
 	/**
      * @private {String} Holds the CSS class for each row
      **/
@@ -93,7 +101,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		// Start scrolling of the rows only.
 		// Header row will not scroll.
 		this.scroller = new Ext.util.Scroller(this.body.dom.lastChild, {
-			vertical: true,
+			vertical  : true,
 			listeners : {
 				scope       : this,
 				scrollstart : this.onScrollStart,
@@ -209,15 +217,21 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			cols : rowsArr.join("")
 		});
 	},
-	// @private
+	// @public
 	// Refreshes the rows when the 'datachanged' event is fired on the Store.
-	refresh              : function() {
+	// Can call to refresh the rows publically.
+	// headers is a Boolean to include (true) refreshing of the headers or not (false).
+	refresh              : function(headers) {
 		// Allow to cancel the refresh.
-		if (this.fireEvent("beforerefresh", this) === false) {
+		if (this.fireEvent("beforerefresh", this, headers) === false) {
 			return ;
 		}
 		
-		var el = this.body.child(".x-grid-rows");
+		if (headers === true) {
+			this.refreshHeaders();
+		}
+		
+		var el = this.body.child("."+this.rowsCls);
 		
 		// Fix to keep the rows under the header.
 		// Not sure why this changes on refresh.
@@ -228,6 +242,13 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		
 		// Fire the 'refresh' event.
 		this.fireEvent("refresh", this);
+	},
+	// @public
+	// Refreshes the header row.
+	// Can call to refresh the header publically.
+	refreshHeaders       : function() {
+		var el = this.body.child("."+this.headerCls);
+		el.update(this.renderHeaders());
 	},
 	// @private
 	// Fires various events.
@@ -311,26 +332,19 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	onScrollEnd          : function() {
 		this.lockSelection(false);
 	},
-	
 	// @public
-	// Returns column object by index.
-	getColumn            : function(index) {
-		return this.colModel[index];
-	},
-	// @public
-	// Returns number of columns.
-	getColumnCount       : function() {
-		return this.colModel.length;
-	},
-	// @public
-	// Returns entire column model object.
-	getColumnModel       : function() {
-		return this.colModel;
-	},
-	// @public
-	// Returns the grid's Store
-	getStore             : function() {
-		return this.store;
+	// Clears all the selected rows.
+	clearSelections      : function() {
+		var i, node,
+			el    = Ext.get(this.scrollerEl.dom.children[0]),
+			nodes = el.dom.children;
+		
+		for (i = 0; i<nodes.length; i++) {
+			node = Ext.get(nodes[i]);
+			node.set({
+				selected : false
+			});
+		}
 	},
 	// @public
 	// Finds the column index of an element.
@@ -356,20 +370,90 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		return this.findColIndex(el, this.hdCls);
 	},
 	// @public
+	// Returns column object by index.
+	getColumn            : function(index) {
+		return this.colModel[index];
+	},
+	// @public
+	// Returns number of columns.
+	getColumnCount       : function() {
+		return this.colModel.length;
+	},
+	// @public
+	// Returns entire column model object.
+	getColumnModel       : function() {
+		return this.colModel;
+	},
+	// @public
+	// Returns the row element from a specified index.
+	// If element is true, it will return the Ext.Element wrapped element.
+	getRow               : function(index, returnDom) {
+		var node = this.body.child("."+this.rowsCls).dom.childNodes[index];
+		if (returnDom !== true) {
+			node = Ext.get(node);
+		}
+		return node;
+	},
+	// @public
+	// Returns the grid's Store
+	getStore             : function() {
+		return this.store;
+	},
+	// @public
 	// Moves a column to a new position.
 	// Will refresh all rows.
 	moveColumn           : function(oldIndex, newIndex) {
-		
+		var colModel = this.colModel,
+			column   = colModel[oldIndex];
+
+		colModel.splice(oldIndex, 1);
+		colModel.splice(newIndex, 0, column);
+		this.colModel = colModel;
+		this.refresh(true);
 	},
 	// @public
-	// Scrolls to a specific row.
-	scrollToRow          : function(row, anim) {
-		
-	},
-	// @public
-	// Scrolls to the top.
-	scrollToTop          : function(anim) {
-		
+	// Selects specified row by indexes.
+	// Can be a single row or an array of rows.
+	// If singleSelect is true, will only select the last row
+	// but each selection event series will still fire.
+	selectRows            : function(rows) {
+		// If selection is currently locked, cancel selection.
+		if (this.selModel.locked === true) {
+			return ;
+		}
+		// Convert rows to array if not already
+		if (!Ext.isArray(rows)) {
+			rows = [rows];
+		}
+		// Loop through the specified rows.
+		for (var i = 0; i < rows.length; i++) {
+			var row       = rows[i],
+				selected  = row.getAttribute("selected"),
+				newSelect = (selected === "true") ? false : true,
+				deselect  = (newSelect === false) ? "de" : "",
+				index = row.getAttribute("rowIndex"),
+				record = this.store.getAt(index);
+			
+			// Allow for cancelation of row selection or deselection.
+			if (this.fireEvent("beforerow"+deselect+"select", this, index, record) !== false) {
+				// If singleSelect is true, deselect the currently selected row.
+				if (this.selModel.singleSelect) {
+					if (this.selModel.selected !== null && this.selModel.selected !== row) {
+						this.selModel.selected.set({
+							selected : false
+						});
+					}
+					this.selModel.selected = row;
+				}
+				
+				// Select the row.
+				row.set({
+					selected : newSelect
+				});
+				this.fireEvent("row"+deselect+"select", this, index, record);
+			    this.fireEvent("selectionchange", this);
+			}
+		}
 	},
 	// @public
 	// Updates the different config options of a column
@@ -385,51 +469,10 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	// @private
 	// Does the actual selecting and deselecting of the row that was clicked on.
 	onRowClickSelModel   : function(grid, index, e) {
-		// If selection is currently locked, cancel selection.
-		if (this.selModel.locked === true) {
-			return ;
-		}
 		var target    = e.getTarget(),
 			el        = Ext.get(target),
-			row       = Ext.get(el.findParent("."+this.rowCls)),
-			selected  = row.getAttribute("selected"),
-			newSelect = (selected === "true") ? false : true,
-			deselect  = (newSelect === false) ? "de" : "",
-			record    = this.store.getAt(index);
-		
-		// Allow for cancelation of selection/deselection.
-		if (this.fireEvent("beforerow"+deselect+"select", this, index, record) !== false) {
-			// If singleSelect is true, deselect the currently selected row.
-			if (this.selModel.singleSelect) {
-				if (this.selModel.selected !== null && this.selModel.selected !== row) {
-					this.selModel.selected.set({
-						selected : false
-					});
-				}
-				this.selModel.selected = row;
-			}
-			
-			// Select the row.
-			row.set({
-				selected : newSelect
-			});
-			this.fireEvent("row"+deselect+"select", this, index, record);
-		    this.fireEvent("selectionchange", this);
-		}
-	},
-	// @public
-	// Clears all the selected rows.
-	clearSelections      : function() {
-		var i, node,
-			el    = Ext.get(this.scrollerEl.dom.children[0]),
-			nodes = el.dom.children;
-		
-		for (i = 0; i<nodes.length; i++) {
-			node = Ext.get(nodes[i]);
-			node.set({
-				selected : false
-			});
-		}
+			row       = Ext.get(el.findParent("."+this.rowCls));
+		this.selectRows(row);
 	}
 });
 
