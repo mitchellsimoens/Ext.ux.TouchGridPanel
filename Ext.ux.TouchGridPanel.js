@@ -311,10 +311,31 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	onScrollEnd          : function() {
 		this.lockSelection(false);
 	},
+	
+	// @public
+	// Returns column object by index.
+	getColumn            : function(index) {
+		return this.colModel[index];
+	},
+	// @public
+	// Returns number of columns.
+	getColumnCount       : function() {
+		return this.colModel.length;
+	},
+	// @public
+	// Returns entire column model object.
+	getColumnModel       : function() {
+		return this.colModel;
+	},
+	// @public
+	// Returns the grid's Store
+	getStore             : function() {
+		return this.store;
+	},
 	// @public
 	// Finds the column index of an element.
 	// Can get index of header or row.
-	findColIndex        : function(el, requiredCls) {
+	findColIndex         : function(el, requiredCls) {
 		var cell = Ext.get(el);
 		
 		// requiredCls property is to distinguish whether is a header or not.
@@ -333,6 +354,27 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	// Just a convenient function.
 	findHeaderIndex      : function(el) {
 		return this.findColIndex(el, this.hdCls);
+	},
+	// @public
+	// Moves a column to a new position.
+	// Will refresh all rows.
+	moveColumn           : function(oldIndex, newIndex) {
+		
+	},
+	// @public
+	// Scrolls to a specific row.
+	scrollToRow          : function(row, anim) {
+		
+	},
+	// @public
+	// Scrolls to the top.
+	scrollToTop          : function(anim) {
+		
+	},
+	// @public
+	// Updates the different config options of a column
+	updateColumnConfig   : function(index, config) {
+		
 	},
 	// @private
 	// Starts the specified selection model by listening to the 'rowclick' event.
