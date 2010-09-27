@@ -15,12 +15,11 @@
 	-webkit-column-rule-style: solid;
 	-webkit-column-rule-color: black;
 	
-	height: 2.5em;
 	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #9aa7b2), color-stop(2%, #647482), color-stop(100%, #434d57));
 	z-index: 1;
 }
 .x-grid-rows {
-	padding-top: 3em;
+	padding-top: 3.2em;
 	z-index:0;
 }
 .x-grid-row {
@@ -45,7 +44,7 @@
 	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
 }
 .x-grid-cell {
-	height: 2.5em;
+	height: 2.65em;
 	
 	line-height:15px;
 	vertical-align:middle;
