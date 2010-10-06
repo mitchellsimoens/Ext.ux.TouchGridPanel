@@ -55,6 +55,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	defaultRenderer      : function(value) {
 		return value;
 	},
+	enableDD             : false,
 	// @private
 	initComponent        : function() {
 		// Makes sure all options are in the selModel object
@@ -70,6 +71,11 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		
 		// Starts the selection model
 		this.initSelModel();
+		
+		if (this.enableDD === true) {
+			// Starts the Drag and Drop process
+			this.initDD();
+		}
 		
 		// After the underlaying Ext.Panel is rendered,
 		// the grid elements will be rendered
@@ -89,6 +95,11 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		templates.cellsTpl     = new Ext.Template('<div class="x-grid-cell x-grid-col-{id}" colIndex="{colIndex}" rowIndex="{rowIndex}">{text}</div>');  // Grid cell template
 		
 		return templates;
+	},
+	// @private
+	// Start drag and drop
+	initDD               : function() {
+		new Ext.util.Droppable(this.body, {});
 	},
 	// @private
 	// Starts the grid UI creation
@@ -117,6 +128,8 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	afterRenderView      : function() {
 		var header = Ext.get(this.body.dom.firstChild);
 		
+		
+		
 		// Listen for the 'click' event.
 		// This will look for the row selection
 		this.mon(this.body, {
@@ -143,7 +156,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			headerArr = [],
 			i         = 0,
 			colModel  = this.colModel,
-			colNum    = colModel.length,
+			colNum    = this.getColumnCount(true),
 			templates = this.templates;
 		
 		// Loop through all the columns.
@@ -151,22 +164,26 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			id = colModel[i].id || Ext.id();
 			this.colModel[i].id = id;
 			
+			Ext.applyIf(this.colModel[i].hidden, false);
+			
 			// Adds the renderer to the columns.
 			renderer = colModel[i].renderer || this.defaultRenderer;
 			this.colModel[i].renderer = renderer;
 			
 			// Creates each header cell.
-			headerArr[headerArr.length] = templates.headerRowTpl.apply({
-				id       : id,
-				text     : colModel[i].header,
-				colIndex : i
-			});
+			if (this.colModel[i].hidden !== true) {
+				headerArr[headerArr.length] = templates.headerRowTpl.apply({
+					id       : id,
+					text     : colModel[i].header,
+					colIndex : i
+				});
+			}
 		}
 		
 		// Creates and returns the header row.
 		return templates.headerTpl.apply({
 			rows  : headerArr.join(""),
-			style : "-webkit-column-count: "+colNum+";"
+			style : "-webkit-column-count: "+this.getColumnCount()+";"
 		});
 	},
 	// @private
@@ -186,7 +203,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			meta      = {},
 			numRecs   = records.length,
 			colModel  = this.colModel,
-			colNum    = colModel.length,
+			colNum    = this.getColumnCount(true),
 			templates = this.templates;
 		
 		// Loop through each provided record.
@@ -195,20 +212,22 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			meta = {};
 			// Loop through each column to create each cell.
 			for (i = 0; i < colNum; i++) {
-				meta.id = colModel[i].id;
-				// Execute the renderer.
-				meta.text = colModel[i].renderer.call(this, records[x].get(colModel[i].mapping), records[x], x, i, this.store);
-				meta.colIndex = i;
-				meta.rowIndex = x;
-				
-				// Creates the cells for the row.
-				colsArr[colsArr.length] = templates.cellsTpl.apply(meta);
+				if (colModel[i].hidden !== true) {
+					meta.id = colModel[i].id;
+					// Execute the renderer.
+					meta.text = colModel[i].renderer.call(this, records[x].get(colModel[i].mapping), records[x], x, i, this.store);
+					meta.colIndex = i;
+					meta.rowIndex = x;
+					
+					// Creates the cells for the row.
+					colsArr[colsArr.length] = templates.cellsTpl.apply(meta);
+				}
 			}
 			// Creates the row.
 			rowsArr[rowsArr.length] = templates.colsTpl.apply({
 				cells    : colsArr.join(""),
 				rowIndex : x,
-				style    : "-webkit-column-count: "+colNum+";"
+				style    : "-webkit-column-count: "+this.getColumnCount()+";"
 			});
 		}
 		
@@ -376,8 +395,18 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 	// @public
 	// Returns number of columns.
-	getColumnCount       : function() {
-		return this.colModel.length;
+	getColumnCount       : function(getHidden) {
+		if (getHidden === true) {
+			return this.colModel.length;
+		}
+		var i = 0,
+			count = 0;
+		for (; i < this.colModel.length; i++) {
+			if (this.colModel[i].hidden !== true) {
+				count++;
+			}
+		}
+		return count;
 	},
 	// @public
 	// Returns entire column model object.
@@ -398,6 +427,12 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	// Returns the grid's Store
 	getStore             : function() {
 		return this.store;
+	},
+	// @public
+	// Hides a column
+	hideColumn           : function(index) {
+		this.colModel[index].hidden = true;
+		this.refresh(true);
 	},
 	// @public
 	// Moves a column to a new position.
@@ -454,6 +489,12 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			    this.fireEvent("selectionchange", this);
 			}
 		}
+	},
+	// @public
+	// Shows a hidden column
+	showColumn           : function(index) {
+		this.colModel[index].hidden = false;
+		this.refresh(true);
 	},
 	// @public
 	// Updates the different config options of a column
