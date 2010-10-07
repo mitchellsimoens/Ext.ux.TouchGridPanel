@@ -7,7 +7,7 @@
 	License      : GPL v3 (http://www.gnu.org/licenses/gpl.html)
     Warranty     : none
     Price        : free
-    Version      : 1.3
+    Version      : 1.4
     Date         : 09/26/2010
 */
 

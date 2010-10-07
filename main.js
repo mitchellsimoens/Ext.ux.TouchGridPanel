@@ -57,11 +57,15 @@ Ext.setup({
 				title : "Ext.ux.TouchGridPanel by Mitchell Simoens",
 				items : [{
 					text    : "Edit",
+					ui      : "confirm",
 					handler : function() {
 						grid.enableEdit(true);
 					}
 				},{
-					text    : "Cancel",
+					xtype : "spacer"
+				},{
+					text    : "Done",
+					ui      : "action",
 					handler : function() {
 						grid.enableEdit(false);
 					}
