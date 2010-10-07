@@ -11,6 +11,11 @@
     Date         : 09/26/2010
 */
 
+/*
+ * Limitation of CSS3 columns is there cannot be different widths.
+ * Future spec may include this.
+ */
+
 Ext.ns("Ext.ux");
 
 Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
@@ -55,7 +60,18 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	defaultRenderer      : function(value) {
 		return value;
 	},
+	/**
+     * @private {String} Holds the components to be rendered
+     **/
+	components           : [],
 	enableDD             : false,
+	/**
+     * @cfg {Boolean} If row allows edit
+     * Will add two columns, one at beginning and one at end.
+     * Beginning column will have red circle image that will
+     * activate the column at the end which has delete button.
+     **/
+	editable             : false,
 	// @private
 	initComponent        : function() {
 		// Makes sure all options are in the selModel object
@@ -64,6 +80,12 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			singleSelect : true,
 			locked       : false,
 			selected     : null
+		});
+		
+		// Creates a last column for the delete button
+		this.colModel.push({
+			header : "&nbsp;",
+			hidden : true
 		});
 		
 		// Creates all templates to be used
@@ -89,10 +111,10 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		var templates = {};
 		
 		templates.headerTpl    = new Ext.Template('<div class="x-grid-header" style="{style}">{rows}</div>');                                            // Header row template
-		templates.headerRowTpl = new Ext.Template('<div class="x-grid-cell x-grid-hd-cell x-grid-col-{id}" colIndex="{colIndex}">{text}</div>');         // Header cell template
+		templates.headerRowTpl = new Ext.Template('<div class="x-grid-cell x-grid-hd-cell x-grid-col-{id}" id="{id}" colIndex="{colIndex}" sort="null">{text}</div>');         // Header cell template
 		templates.rowsTpl      = new Ext.Template('<div class="x-grid-rows">{cols}</div>');                                                              // Grid rows template
 		templates.colsTpl      = new Ext.Template('<div class="x-grid-row" rowIndex="{rowIndex}" selected="false" style="{style}">{cells}</div>');       // Grid row template
-		templates.cellsTpl     = new Ext.Template('<div class="x-grid-cell x-grid-col-{id}" colIndex="{colIndex}" rowIndex="{rowIndex}">{text}</div>');  // Grid cell template
+		templates.cellsTpl     = new Ext.Template('<div class="x-grid-cell x-grid-col-{id} {overflow}" id="{id}" colIndex="{colIndex}" rowIndex="{rowIndex}">{text}</div>');  // Grid cell template
 		
 		return templates;
 	},
@@ -128,7 +150,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	afterRenderView      : function() {
 		var header = Ext.get(this.body.dom.firstChild);
 		
+		this.renderComponents();
 		
+		this.on("refresh", this.renderComponents, this);
 		
 		// Listen for the 'click' event.
 		// This will look for the row selection
@@ -148,6 +172,20 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		// Listen for the 'click' event on the header.
 		// handleHdDown function will sort rows.
 		header.on("click", this.handleHdDown, this);
+	},
+	// @private
+	// Renders buttons to the correct cell
+	renderComponents     : function() {
+		var components = this.components,
+			ln, i, component, delegate;        
+		if (components) {
+			for (i = 0, ln = components.length; i < ln; i++) {
+				component = components[i];
+				component.config.renderTo = Ext.get(component.config.renderTo);
+				component.config.renderTo.update("");
+				new Ext.Button(component.config);
+			}
+		}
 	},
 	// @private
 	// Render the header row.
@@ -198,7 +236,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	// @private
 	// Renders each row specified.
 	doRowRender          : function(records, startRow) {
-		var i, x, colsArr,
+		var i, x, colsArr, record,
 			rowsArr   = [],
 			meta      = {},
 			numRecs   = records.length,
@@ -210,17 +248,45 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		for (x = 0; x < numRecs; x++) {
 			colsArr = [];
 			meta = {};
+			record = records[x];
 			// Loop through each column to create each cell.
 			for (i = 0; i < colNum; i++) {
 				if (colModel[i].hidden !== true) {
-					meta.id = colModel[i].id;
-					// Execute the renderer.
-					meta.text = colModel[i].renderer.call(this, records[x].get(colModel[i].mapping), records[x], x, i, this.store);
-					meta.colIndex = i;
-					meta.rowIndex = x;
-					
-					// Creates the cells for the row.
-					colsArr[colsArr.length] = templates.cellsTpl.apply(meta);
+					if (i === (colNum-1)) {
+						meta.id = Ext.id();
+						meta.text = "Button";
+						meta.colIndex = i;
+						meta.rowIndex = x;
+						meta.overflow = "x-grid-cell-del-btn";
+						
+						// Creates the cell for the row-column
+						var cell = colsArr[colsArr.length] = templates.cellsTpl.apply(meta);
+						
+			            this.components = this.components || [];
+			            this.components.push({
+			                config: {
+			                    xtype    : "button",
+			                    text     : "Delete",
+			                    ui       : "decline-small",
+			                    record   : records[x],
+			                    renderTo : meta.id,
+			                    scope    : this,
+			                    handler  : function(b, e) {
+			                		this.deleteRecord(b.record);
+			                	}
+			                }
+			            });
+					} else {
+						meta.id = colModel[i].id;
+						// Execute the renderer.
+						meta.text = colModel[i].renderer.call(this, records[x].get(colModel[i].mapping), records[x], x, i, this.store);
+						meta.colIndex = i;
+						meta.rowIndex = x;
+						meta.overflow = "x-grid-cell-no-of";
+						
+						// Creates the cell for the row-column
+						colsArr[colsArr.length] = templates.cellsTpl.apply(meta);
+					}
 				}
 			}
 			// Creates the row.
@@ -320,9 +386,16 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		var colModel  = this.colModel,
 			index     = this.findHeaderIndex(target),
 			column    = colModel[index],
-			direction = this.sortDirection;
+			direction = this.sortDirection,
+			target    = Ext.get(target);
 		
 		this.sortDirection = (this.sortDirection === "ASC") ? "DESC" : "ASC";
+		
+		this.clearSortIcons();
+		
+		target.set({
+			"sort": this.sortDirection
+		});
 		
 		// Sorts the Store.
 		// Will fire the 'datachanged' event on the Store.
@@ -364,6 +437,59 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				selected : false
 			});
 		}
+	},
+	// @public
+	// Clears all the icons specifying sorting
+	clearSortIcons        : function() {
+		var header = Ext.get(this.body.dom.firstChild),
+			nodes  = header.dom.children;
+		
+		for (i = 0; i<nodes.length; i++) {
+			node = Ext.get(nodes[i]);
+			node.set({
+				sort : null
+			});
+		}
+	},
+	// @public
+	// Convenient method to delete a record from the store with a confirming action sheet
+	deleteRecord         : function(record) {
+		if (!Ext.isDefined(this.deleteConfirmer)) {
+			this.deleteConfirmer = new Ext.ActionSheet({
+				items: [{
+					text    : "Delete Record",
+					ui      : "decline",
+					scope   : this,
+					handler : function(){
+						this.store.remove(record);
+						this.refresh();
+						this.deleteConfirmer.hide();
+					}
+				},{
+					text    : "Cancel",
+					ui      : "confirm",
+					scope   : this,
+					handler : function(){
+						this.deleteConfirmer.hide();
+					}
+				}]
+			});
+		}
+		this.deleteConfirmer.show();
+	},
+	// @public
+	// Makes the two columns for editing appear
+	enableEdit           : function(allow) {
+		if (this.editable === allow) {
+			return;
+		}
+		this.editable = allow;
+		if (allow === true) {
+			this.showColumn(this.getColumnCount(true)-1, true);
+		} else {
+			this.hideColumn(this.getColumnCount(true)-1, true);
+		}
+		this.refresh(true);
 	},
 	// @public
 	// Finds the column index of an element.
@@ -430,9 +556,11 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 	// @public
 	// Hides a column
-	hideColumn           : function(index) {
+	hideColumn           : function(index, cancelRefresh) {
 		this.colModel[index].hidden = true;
-		this.refresh(true);
+		if (cancelRefresh !== true) {
+			this.refresh(true);
+		}
 	},
 	// @public
 	// Moves a column to a new position.
@@ -492,9 +620,11 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 	// @public
 	// Shows a hidden column
-	showColumn           : function(index) {
+	showColumn           : function(index, cancelRefresh) {
 		this.colModel[index].hidden = false;
-		this.refresh(true);
+		if (cancelRefresh !== true) {
+			this.refresh(true);
+		}
 	},
 	// @public
 	// Updates the different config options of a column

@@ -54,18 +54,27 @@ Ext.setup({
 			dockedItems : [{
 				xtype : "toolbar",
 				dock  : "top",
-				title : "Ext.ux.TouchGridPanel by Mitchell Simoens"
+				title : "Ext.ux.TouchGridPanel by Mitchell Simoens",
+				items : [{
+					text    : "Edit",
+					handler : function() {
+						grid.enableEdit(true);
+					}
+				},{
+					text    : "Cancel",
+					handler : function() {
+						grid.enableEdit(false);
+					}
+				}]
 			}],
 			selModel    : {
 				singleSelect : true
 			},
 			colModel    : [{
 				header  : "Company",
-				width   : 250,
 				mapping : "company"
 			},{
 				header   : "Price",
-				width    : 150,
 				mapping  : "price",
 				renderer : function(value, record, rowIndex, colIndex, store) {
 					if (value < 0) {
@@ -80,22 +89,20 @@ Ext.setup({
 				}
 			},{
 				header   : "Change",
-				width    : 150,
 				mapping  : "change",
 				renderer : function(value) {
 					if (value > 0) {
 						value = value.toFixed(2);
-						return '<span style="color:green;">' + value + '</span>';
+						return '<span style="color:green;float:right;">' + value + '</span>';
 					} else if (value < 0) {
 						value *= -1;
 						value = value.toFixed(2);
-						return '<span style="color:red;">' + value + '</span>';
+						return '<span style="color:red;float:right;">' + value + '</span>';
 					}
 					return value;
 				}
 			},{
 				header   : "% Change",
-				width    : 150,
 				mapping  : "pct",
 				renderer : function(value) {
 					if (value > 0) {
@@ -110,7 +117,6 @@ Ext.setup({
 				}
 			},{
 				header   : "Last Updated",
-				width    : 200,
 				mapping  : "updated",
 				renderer : function(value) {
 					return Ext.util.Format.date(value, "m-d-Y");

@@ -40,14 +40,24 @@
 	color: #FFF;
 	text-shadow: rgba(0, 0, 0, 0.5) 0 -0.08em 0;
 }
+.x-grid-hd-cell[sort$=ASC] {
+	background: url('sort_asc.gif') no-repeat right center;
+}
+.x-grid-hd-cell[sort$=DESC] {
+	background: url('sort_desc.gif') no-repeat right center;
+}
 .x-grid-cell {
 	line-height:15px;
 	vertical-align:middle;
 	line-height: 2em;
 	font-size: 1em;
 	font-weight: bold;
-	
+}
+.x-grid-cell-no-of {
 	overflow:hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+.x-grid-cell-del-btn {
+	padding-top: 1em;
 }
