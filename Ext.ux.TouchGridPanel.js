@@ -7,7 +7,7 @@
 	License      : GPL v3 (http://www.gnu.org/licenses/gpl.html)
     Warranty     : none
     Price        : free
-    Version      : 1.4
+    Version      : 1.4.1
     Date         : 09/26/2010
 */
 
@@ -72,6 +72,14 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
      * activate the column at the end which has delete button.
      **/
 	editable             : false,
+	/**
+     * @cfg {Object} Animation config
+     * Configuration object for deleting a record.
+     **/
+	deleteAnimation      : {
+		type     : "fade",
+		duration : 1000
+	},
 	// @private
 	initComponent        : function() {
 		// Makes sure all options are in the selModel object
@@ -83,7 +91,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		});
 		
 		// Creates a last column for the delete button
-		this.colModel.push({
+		this.colModel.unshift({
 			header : "&nbsp;",
 			hidden : true
 		});
@@ -183,7 +191,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				component = components[i];
 				component.config.renderTo = Ext.get(component.config.renderTo);
 				component.config.renderTo.update("");
-				new Ext.Button(component.config);
+				Ext.create(component.config, "button");
 			}
 		}
 	},
@@ -252,9 +260,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			// Loop through each column to create each cell.
 			for (i = 0; i < colNum; i++) {
 				if (colModel[i].hidden !== true) {
-					if (i === (colNum-1)) {
+					if (i === 0 && this.editable === true) {
 						meta.id = Ext.id();
-						meta.text = "Button";
+						meta.text = "";
 						meta.colIndex = i;
 						meta.rowIndex = x;
 						meta.overflow = "x-grid-cell-del-btn";
@@ -267,17 +275,19 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			                config: {
 			                    xtype    : "button",
 			                    text     : "Delete",
-			                    ui       : "decline-small",
+			                    ui       : "decline",
 			                    record   : records[x],
 			                    renderTo : meta.id,
 			                    scope    : this,
 			                    handler  : function(b, e) {
-			                		this.deleteRecord(b.record);
+			            			var target = Ext.get(e.getTarget()),
+			            				row = target.parent("."+this.rowCls);
+			                		this.deleteRecord(row, b.record);
 			                	}
 			                }
 			            });
 					} else {
-						meta.id = colModel[i].id;
+						meta.id = Ext.id();
 						// Execute the renderer.
 						meta.text = colModel[i].renderer.call(this, records[x].get(colModel[i].mapping), records[x], x, i, this.store);
 						meta.colIndex = i;
@@ -452,30 +462,35 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		}
 	},
 	// @public
-	// Convenient method to delete a record from the store with a confirming action sheet
-	deleteRecord         : function(record) {
-		if (!Ext.isDefined(this.deleteConfirmer)) {
-			this.deleteConfirmer = new Ext.ActionSheet({
-				items: [{
-					text    : "Delete Record",
-					ui      : "decline",
-					scope   : this,
-					handler : function(){
-						this.store.remove(record);
-						this.refresh();
-						this.deleteConfirmer.hide();
-					}
-				},{
-					text    : "Cancel",
-					ui      : "confirm",
-					scope   : this,
-					handler : function(){
-						this.deleteConfirmer.hide();
-					}
-				}]
+	// Convenient method to delete a record from the store
+	deleteRecord         : function(row, record, skipAnim, refresh) {
+		if (this.fireEvent("beforerecorddelete", this, record, row) !== false) {
+			this.deleteRecord(row, record, skipAnim, refresh);
+			this.fireEvent("recorddelete", this, record, row);
+		}
+		return ;
+	},
+	deleteRecordActual    : function(row, record, skipAnim, refresh) {
+		if (skipAnim === true) {
+			this.deleteRecordAfter(row, record, refresh);
+		} else {
+			Ext.Anim.run(row, this.deleteAnimation, {
+				out       : true,
+				scope     : this,
+				after     : function() {
+					this.deleteRecordAfter(row, record, refresh);
+				}                    
 			});
 		}
-		this.deleteConfirmer.show();
+	},
+	// @public
+	// Convenient method to delete a record from the store
+	deleteRecordAfter    : function(row, record, refresh) {
+		row.remove();
+		this.store.remove(record);
+		if (refresh === true) {
+			this.refresh();
+		}
 	},
 	// @public
 	// Makes the two columns for editing appear
@@ -485,9 +500,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		}
 		this.editable = allow;
 		if (allow === true) {
-			this.showColumn(this.getColumnCount(true)-1, true);
+			this.showColumn(0, true);
 		} else {
-			this.hideColumn(this.getColumnCount(true)-1, true);
+			this.hideColumn(0, true);
 		}
 		this.refresh(true);
 	},

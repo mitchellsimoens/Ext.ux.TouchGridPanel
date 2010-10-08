@@ -4,6 +4,7 @@ Ext.setup({
 	icon                : "icon.png",
 	glossOnIcon         : true,
 	onReady             : function() {
+		var deleteConfirm;
 		Ext.regModel("TestModel", {
 			fields     : [
 		        "company",
@@ -13,7 +14,7 @@ Ext.setup({
 		        "updated"
 			]
 		});
-		store = new Ext.data.Store({
+		var store = new Ext.data.Store({
 			model : "TestModel",
 			data  : [
 				{ company : "3m Co",                               price : 71.72, change : 0.02,  pct : 0.03,  updated : "9/1/2010" },
@@ -84,12 +85,12 @@ Ext.setup({
 					if (value < 0) {
 						value *= -1;
 						value = value.toFixed(2);
-						return "<span style='color:red'>$" + value + "</style>";
+						return "<span style='color:red;float:right;'>$" + value + "</style>";
 					} else if (value > 0) {
 						value = value.toFixed(2);
-						return "<span style='color:green'>$" + value + "</style>";
+						return "<span style='color:green;float:right;'>$" + value + "</style>";
 					}
-					return "$"+value.toFixed(2);
+					return "<span style='float:right;'>$"+value.toFixed(2)+"</span>";
 				}
 			},{
 				header   : "Change",
@@ -103,7 +104,7 @@ Ext.setup({
 						value = value.toFixed(2);
 						return '<span style="color:red;float:right;">' + value + '</span>';
 					}
-					return value;
+					return "<span style='float:right;'>"+value+"</span>";
 				}
 			},{
 				header   : "% Change",
@@ -111,13 +112,13 @@ Ext.setup({
 				renderer : function(value) {
 					if (value > 0) {
 						value = value.toFixed(2);
-						return '<span style="color:green;">' + value + '%</span>';
+						return '<span style="color:green;float:right;">' + value + '%</span>';
 					} else if (value < 0) {
 						value *= -1;
 						value = value.toFixed(2);
-						return '<span style="color:red;">' + value + '%</span>';
+						return '<span style="color:red;float:right;">' + value + '%</span>';
 					}
-					return value+"%";
+					return "<span style='float:right;'>"+value+"%</span>";
 				}
 			},{
 				header   : "Last Updated",
@@ -127,20 +128,29 @@ Ext.setup({
 				}
 			}],
 			listeners : {
-				beforerowdeselect : function() {
-					console.log("Before Row Deselect");
-				},
-				rowdeselect       : function() {
-					console.log("Row Deselect");
-				},
-				beforerowselect : function() {
-					console.log("Before Row Select");
-				},
-				rowselect       : function() {
-					console.log("Row Select");
-				},
-				selectionchange : function() {
-					console.log("Selection Change");
+				beforerecorddelete : function(grid, record, row) {
+					if (!deleteConfirm) {
+						deleteConfirm = new Ext.ActionSheet({
+							items: [{
+								text: 'Delete Record',
+								ui: 'decline',
+								scope : this,
+								handler : function() {
+									deleteConfirm.hide();
+									grid.deleteRecordActual(row, record);
+								}
+							},{
+								text : 'Cancel',
+								ui: 'confirm',
+								scope : this,
+								handler : function() {
+									deleteConfirm.hide();
+								}
+							}]
+						});
+					}
+					deleteConfirm.show();
+					return false;
 				}
 			}
 		});

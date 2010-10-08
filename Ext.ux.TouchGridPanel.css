@@ -59,5 +59,6 @@
 	white-space: nowrap;
 }
 .x-grid-cell-del-btn {
-	padding-top: 1em;
+	padding-top: 1px;
+	padding-left: 0.5em;
 }
