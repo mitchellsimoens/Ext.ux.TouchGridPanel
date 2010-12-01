@@ -55,7 +55,7 @@ Ext.setup({
 			dockedItems : [{
 				xtype : "toolbar",
 				dock  : "top",
-				title : "Ext.ux.TouchGridPanel by Mitchell Simoens",
+				title : "Ext.ux.TouchGridPanel by Mitchell Simoens"/*,
 				items : [{
 					text    : "Edit",
 					ui      : "confirm",
@@ -70,7 +70,7 @@ Ext.setup({
 					handler : function() {
 						grid.enableEdit(false);
 					}
-				}]
+				}]*/
 			}],
 			selModel    : {
 				singleSelect : true
@@ -85,12 +85,12 @@ Ext.setup({
 					if (value < 0) {
 						value *= -1;
 						value = value.toFixed(2);
-						return "<span style='color:red;float:right;'>$" + value + "</style>";
+						return "<span style='color:red;'>$" + value + "</style>";
 					} else if (value > 0) {
 						value = value.toFixed(2);
-						return "<span style='color:green;float:right;'>$" + value + "</style>";
+						return "<span style='color:green;'>$" + value + "</style>";
 					}
-					return "<span style='float:right;'>$"+value.toFixed(2)+"</span>";
+					return "<span style=''>$"+value.toFixed(2)+"</span>";
 				}
 			},{
 				header   : "Change",
@@ -98,11 +98,11 @@ Ext.setup({
 				renderer : function(value) {
 					if (value > 0) {
 						value = value.toFixed(2);
-						return '<span style="color:green;float:right;">' + value + '</span>';
+						return '<span style="color:green;">' + value + '</span>';
 					} else if (value < 0) {
 						value *= -1;
 						value = value.toFixed(2);
-						return '<span style="color:red;float:right;">' + value + '</span>';
+						return '<span style="color:red;">' + value + '</span>';
 					}
 					return "<span style='float:right;'>"+value+"</span>";
 				}
@@ -112,11 +112,11 @@ Ext.setup({
 				renderer : function(value) {
 					if (value > 0) {
 						value = value.toFixed(2);
-						return '<span style="color:green;float:right;">' + value + '%</span>';
+						return '<span style="color:green;">' + value + '%</span>';
 					} else if (value < 0) {
 						value *= -1;
 						value = value.toFixed(2);
-						return '<span style="color:red;float:right;">' + value + '%</span>';
+						return '<span style="color:red;">' + value + '%</span>';
 					}
 					return "<span style='float:right;'>"+value+"%</span>";
 				}
@@ -126,33 +126,17 @@ Ext.setup({
 				renderer : function(value) {
 					return Ext.util.Format.date(value, "m-d-Y");
 				}
-			}],
-			listeners : {
-				beforerecorddelete : function(grid, record, row) {
-					if (!deleteConfirm) {
-						deleteConfirm = new Ext.ActionSheet({
-							items: [{
-								text: 'Delete Record',
-								ui: 'decline',
-								scope : this,
-								handler : function() {
-									deleteConfirm.hide();
-									grid.deleteRecordActual(row, record);
-								}
-							},{
-								text : 'Cancel',
-								ui: 'confirm',
-								scope : this,
-								handler : function() {
-									deleteConfirm.hide();
-								}
-							}]
-						});
-					}
-					deleteConfirm.show();
-					return false;
-				}
-			}
+			}]
 		});
+		
+		new Ext.util.DelayedTask(function() {
+			store.add({
+				company : "Mitchell",
+		        price : 100,
+		        change : 90,
+		        pct : 900,
+		        updated : "11/30/2010"
+			});
+		}).delay(2000);
 	}
 });
