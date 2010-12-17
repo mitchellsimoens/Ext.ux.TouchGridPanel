@@ -7,8 +7,8 @@
 	License      : GPL v3 (http://www.gnu.org/licenses/gpl.html)
     Warranty     : none
     Price        : free
-    Version      : 1.5
-    Date         : 09/26/2010
+    Version      : 1.5.1
+    Date         : 12/16/2010
 */
 
 /*
@@ -22,6 +22,12 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	defaultRenderer      : function(value) {
 		return value;
 	},
+	
+	selModel: {
+		singleSelect: false,
+		locked: false
+	},
+	
 	initComponent: function() {
 		this.templates = this.initTemplates();
 		
