@@ -126,17 +126,15 @@ Ext.setup({
 				renderer : function(value) {
 					return Ext.util.Format.date(value, "m-d-Y");
 				}
-			}]
+			}],
+			listeners: {
+				rowtap: function(grid, el, rowIndex, e) {
+					console.log(grid);
+					console.log(el);
+					console.log(rowIndex);
+					console.log(e);
+				}
+			}
 		});
-		
-		new Ext.util.DelayedTask(function() {
-			store.add({
-				company : "Mitchell",
-		        price : 100,
-		        change : 90,
-		        pct : 900,
-		        updated : "11/30/2010"
-			});
-		}).delay(2000);
 	}
 });

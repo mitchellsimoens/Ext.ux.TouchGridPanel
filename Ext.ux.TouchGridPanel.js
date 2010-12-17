@@ -87,6 +87,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 	
 	initEvents: function() {
+		Ext.ux.TouchGridPanel.superclass.initEvents.call(this);
 		if (this.isRendered === true) {
 			return ;
 		}
