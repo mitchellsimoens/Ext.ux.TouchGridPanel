@@ -1,24 +1,12 @@
 .x-grid-header {
-	position: absolute;
-	top: 0;
 	width: 100%;
-	
-	-webkit-column-rule-width: 1px;
-	-webkit-column-rule-style: solid;
-	-webkit-column-rule-color: black;
-	
+
+	margin-right: 4px;
+
 	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #9aa7b2), color-stop(2%, #647482), color-stop(100%, #434d57));
-	z-index: 1;
-}
-.x-grid-rows {
-	padding-top: 2em;
-	z-index:0;
 }
 .x-grid-row {
-	-webkit-column-rule-width: 1px;
-	-webkit-column-rule-style: solid;
-	-webkit-column-rule-color: black;
-	
+	border-top: 1px solid #000;
 	border-bottom: 1px solid #000;
 }
 .x-grid-row:nth-child(even) {
@@ -26,14 +14,6 @@
 }
 .x-grid-row:nth-child(odd) {
 	background-color: #f0f0f0;
-}
-.x-grid-row[selected$=true] {
-	-webkit-transform: translate3d(0, 0, 0);
-	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #7fb6e7), color-stop(2%, #2986d6), color-stop(100%, #1d5e96));
-	background-image: linear-gradient(top, #7fb6e7 0%, #2986d6 2%, #1d5e96 100%);
-	color: #fff;
-	border-color: #103656;
-	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
 }
 .x-grid-hd-cell {
 	text-align: center;
@@ -52,6 +32,8 @@
 	line-height: 2em;
 	font-size: 1em;
 	font-weight: bold;
+	border-left: 1px solid #000;
+	border-right: 1px solid #000;
 }
 .x-grid-cell-no-of {
 	overflow:hidden;
@@ -61,4 +43,12 @@
 .x-grid-cell-del-btn {
 	padding-top: 1px;
 	padding-left: 0.5em;
+}
+.x-item-selected {
+	-webkit-transform: translate3d(0, 0, 0);
+	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #7fb6e7), color-stop(2%, #2986d6), color-stop(100%, #1d5e96));
+	background-image: linear-gradient(top, #7fb6e7 0%, #2986d6 2%, #1d5e96 100%);
+	color: #fff;
+	border-color: #103656;
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
 }

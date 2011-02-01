@@ -44,95 +44,59 @@ Ext.setup({
 				{ company : "The Home Depot, Inc.",                price : 34.64, change : 0.35,  pct : 1.02,  updated : "9/1/2010" },
 				{ company : "The Procter &#38; Gamble Company",    price : 61.91, change : 0.01,  pct : 0.02,  updated : "9/1/2010" },
 				{ company : "United Technologies Corporation",     price : 63.26, change : 0.55,  pct : 0.88,  updated : "9/1/2010" },
-				{ company : "Verizon Communications",              price : 35.57, change : 0.39,  pct : 1.11,  updated : "9/1/2010" },            
+				{ company : "Verizon Communications",              price : 35.57, change : 0.39,  pct : 1.11,  updated : "9/1/2010" },
 				{ company : "Wal-Mart Stores, Inc.",               price : 45.45, change : 0.73,  pct : 1.63,  updated : "9/1/2010" }
 			]
 		});
-		
+
 		var grid = new Ext.ux.TouchGridPanel({
 			fullscreen  : true,
 			store       : store,
+			multiSelect : false,
 			dockedItems : [{
 				xtype : "toolbar",
 				dock  : "top",
-				title : "Ext.ux.TouchGridPanel by Mitchell Simoens"/*,
-				items : [{
-					text    : "Edit",
-					ui      : "confirm",
-					handler : function() {
-						grid.enableEdit(true);
-					}
-				},{
-					xtype : "spacer"
-				},{
-					text    : "Done",
-					ui      : "action",
-					handler : function() {
-						grid.enableEdit(false);
-					}
-				}]*/
+				title : "Ext.ux.TouchGridPanel by Mitchell Simoens"
 			}],
-			selModel    : {
-				singleSelect : true
-			},
 			colModel    : [{
-				header  : "Company",
-				mapping : "company"
+				header   : "Company",
+				mapping  : "company",
+				flex     : 2
 			},{
 				header   : "Price",
 				mapping  : "price",
-				renderer : function(value, record, rowIndex, colIndex, store) {
-					if (value < 0) {
-						value *= -1;
-						value = value.toFixed(2);
-						return "<span style='color:red;'>$" + value + "</style>";
-					} else if (value > 0) {
-						value = value.toFixed(2);
-						return "<span style='color:green;'>$" + value + "</style>";
-					}
-					return "<span style=''>$"+value.toFixed(2)+"</span>";
-				}
+				style    : "text-align: center;"
 			},{
 				header   : "Change",
 				mapping  : "change",
-				renderer : function(value) {
-					if (value > 0) {
-						value = value.toFixed(2);
-						return '<span style="color:green;">' + value + '</span>';
-					} else if (value < 0) {
-						value *= -1;
-						value = value.toFixed(2);
-						return '<span style="color:red;">' + value + '</span>';
-					}
-					return "<span style='float:right;'>"+value+"</span>";
-				}
+				cls      : "centered-cell"
 			},{
 				header   : "% Change",
 				mapping  : "pct",
-				renderer : function(value) {
-					if (value > 0) {
-						value = value.toFixed(2);
-						return '<span style="color:green;">' + value + '%</span>';
-					} else if (value < 0) {
-						value *= -1;
-						value = value.toFixed(2);
-						return '<span style="color:red;">' + value + '%</span>';
-					}
-					return "<span style='float:right;'>"+value+"%</span>";
-				}
+				cls      : "centered-cell"
 			},{
 				header   : "Last Updated",
 				mapping  : "updated",
-				renderer : function(value) {
-					return Ext.util.Format.date(value, "m-d-Y");
-				}
+				style    : "text-align: right;"
 			}],
 			listeners: {
-				rowtap: function(grid, el, rowIndex, e) {
-					console.log(grid);
-					console.log(el);
-					console.log(rowIndex);
-					console.log(e);
+				beforeselect: function(dataview, nodes, selections) {
+					console.log(selections);
+				},
+				containertap: function(dataview, e) {
+					console.log(dataview);
+				},
+				itemdoubletap: function(dataview, index, el, e) {
+					console.log(index);
+				},
+				itemswipe: function(dataview, index, el, e) {
+					console.log(index);
+				},
+				itemtap: function(dataview, index, el, e) {
+					console.log(index);
+				},
+				selectionchange: function(selectionModel, selections) {
+					console.log(selections);
 				}
 			}
 		});
