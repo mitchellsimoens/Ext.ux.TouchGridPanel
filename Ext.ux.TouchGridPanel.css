@@ -44,6 +44,11 @@
 	padding-top: 1px;
 	padding-left: 0.5em;
 }
+
+.x-grid-col-hidden {
+	display: none;
+}
+
 .x-item-selected {
 	-webkit-transform: translate3d(0, 0, 0);
 	background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #7fb6e7), color-stop(2%, #2986d6), color-stop(100%, #1d5e96));

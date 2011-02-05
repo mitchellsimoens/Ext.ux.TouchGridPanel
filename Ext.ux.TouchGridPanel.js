@@ -31,7 +31,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			this.dockedItems = [];
 		}
 
-		this.dockedItems.push(this.buildHeader());
+		this.header = new Ext.Component(this.buildHeader());
+
+		this.dockedItems.push(this.header);
 
 		Ext.ux.TouchGridPanel.superclass.initComponent.call(this);
 	},
@@ -44,18 +46,22 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 
 		colTpl += '    <tr>';
 		for (var i = 0; i < colModel.length; i++) {
-			var col = colModel[i];
-			var flex = col.flex || 1;
+			var col  = colModel[i],
+				flex = col.flex || 1,
+				cls  = "";
 
 			var width = flex * cellWidth;
 
-			colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-hd-cell" mapping="' + col.mapping + '">' + col.header + '</td>';
+			if (col.hidden) {
+				cls += "x-grid-col-hidden";
+			}
+
+			colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-hd-cell x-grid-col-' + col.mapping + ' ' + cls + '" mapping="' + col.mapping + '">' + col.header + '</td>';
 		}
 		colTpl += '    </tr>';
 		colTpl += '</table>';
 
 		return {
-			xtype : "component",
 			dock  : "top",
 			html  : colTpl,
 			listeners: {
@@ -94,10 +100,16 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			var col   = colModel[i],
 				flex  = col.flex || 1,
 				width = flex * cellWidth,
-				style = (i === colModel.length - 1) ? "padding-right: 10px;" : "";
+				style = (i === colModel.length - 1) ? "padding-right: 10px;" : "",
+				cls   = col.cls || "";
+
 			style += col.style || "";
 
-			colTpl += '<td width="' + width + '%" class="x-grid-cell ' + col.cls + '" style="' + style + '">{' + col.mapping + '}</td>';
+			if (col.hidden) {
+				cls += "x-grid-col-hidden";
+			}
+
+			colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-col-' + col.mapping + ' ' + cls + '" style="' + style + '" mapping="' + col.mapping + '">{' + col.mapping + '}</td>';
 		}
 		colTpl += '</tr>';
 
@@ -131,10 +143,65 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		for (var i = 0; i < colModel.length; i++) {
 			var col = colModel[i];
 			if (!hidden && typeof col.header !== "string") { continue; }
-			colNum += col.flex || 1;
+			if (!col.hidden) {
+				colNum += col.flex || 1;
+			}
 		}
 
 		return colNum;
+	},
+
+	getMappings: function() {
+		var mappings = {},
+			colModel = this.colModel;
+		for (var i = 0; i < colModel.length; i++) {
+			mappings[colModel[i].mapping] = i
+		}
+
+		return mappings;
+	},
+
+	toggleColumn: function(index) {
+		if (typeof index === "string") {
+			var mappings = this.getMappings();
+			index = mappings[index];
+		}
+		var el      = this.getEl(),
+			mapping = this.colModel[index].mapping,
+			cells   = el.query("td.x-grid-col-"+mapping);
+
+		for (var c = 0; c < cells.length; c++) {
+			var cellEl = Ext.get(cells[c]);
+			if (cellEl.hasCls("x-grid-col-hidden")) {
+				cellEl.removeCls("x-grid-col-hidden");
+				this.colModel[index].hidden = false;
+			} else {
+				cellEl.addCls("x-grid-col-hidden");
+				this.colModel[index].hidden = true;
+			}
+		}
+
+		this.updateWidths();
+	},
+
+	updateWidths: function() {
+		var el          = this.getEl(),
+			headerWidth = this.header.getEl().getWidth(),
+			colModel    = this.colModel,
+			cells       = el.query("td.x-grid-cell"),
+			colNum      = this.getColNum(false),
+			cellWidth   = 100 / colNum;
+
+		var mappings = this.getMappings();
+
+		for (var c = 0; c < cells.length; c++) {
+			var cellEl  = Ext.get(cells[c]),
+				mapping = cellEl.getAttribute("mapping"),
+				col     = colModel[mappings[mapping]],
+				flex    = col.flex || 1,
+				width   = flex * cellWidth / 100 * headerWidth;
+			cellEl.setWidth(width);
+		}
 	}
 });
 

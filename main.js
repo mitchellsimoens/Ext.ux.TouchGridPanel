@@ -73,11 +73,12 @@ Ext.setup({
 			},{
 				header   : "% Change",
 				mapping  : "pct",
-				cls      : "centered-cell"
+				cls      : "centered-cell"*/
 			},{
 				header   : "Last Updated",
 				mapping  : "updated",
-				style    : "text-align: right;"*/
+				hidden   : true,
+				style    : "text-align: right;"
 			}],
 			listeners: {
 				beforeselect: function(dataview, nodes, selections) {
