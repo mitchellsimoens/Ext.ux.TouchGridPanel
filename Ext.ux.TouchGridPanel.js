@@ -24,15 +24,18 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	multiSelect   : false,
 
 	initComponent : function() {
-		this.items = [
-			this.buildDataView()
-		];
+		this.dataview = this.buildDataView();
+		this.items = this.dataview;
 
 		if (!Ext.isArray(this.dockedItems)) {
 			this.dockedItems = [];
 		}
 
 		this.dockedItems.push(this.buildHeader());
+
+		this.store.on("datachanged", function() {
+			this.dataview.scroller.moveTo(0, 0);
+		}, this, { single: true });
 
 		Ext.ux.TouchGridPanel.superclass.initComponent.call(this);
 	},
@@ -50,7 +53,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 
 			var width = flex * cellWidth;
 
-			colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-hd-cell">' + col.header + '</td>';
+			colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-hd-cell" mapping="' + col.mapping + '">' + col.header + '</td>';
 		}
 		colTpl += '    </tr>';
 		colTpl += '</table>';
@@ -58,8 +61,31 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		return {
 			xtype : "component",
 			dock  : "top",
-			html  : colTpl
+			html  : colTpl,
+			listeners: {
+				scope: this,
+				afterrender: this.initHeaderEvents
+			}
 		};
+	},
+
+	initHeaderEvents: function(cmp) {
+		var el = cmp.getEl();
+		el.on("click", this.handleHeaderClick, this);
+	},
+
+	handleHeaderClick: function(e, t) {
+		e.stopEvent();
+
+		var el = Ext.get(t);
+		var mapping = el.getAttribute("mapping");
+
+		if (typeof mapping === "string") {
+			this.store.sort(mapping);
+			el.set({
+				sort: this.store.sortToggle[mapping]
+			});
+		}
 	},
 
 	buildDataView : function() {
@@ -79,8 +105,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		}
 		colTpl += '</tr>';
 
-		return {
-			xtype        : "dataview",
+		return new Ext.DataView({
 			store        : this.store,
 			itemSelector : "tr.x-grid-row",
 			simpleSelect : this.multiSelect,
@@ -99,7 +124,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				"itemtap",
 				"selectionchange"
 			]
-		};
+		});
 	},
 
 	// hidden = true to count all columns

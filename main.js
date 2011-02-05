@@ -66,7 +66,7 @@ Ext.setup({
 				header   : "Price",
 				mapping  : "price",
 				style    : "text-align: center;"
-			},{
+			/*},{
 				header   : "Change",
 				mapping  : "change",
 				cls      : "centered-cell"
@@ -77,7 +77,7 @@ Ext.setup({
 			},{
 				header   : "Last Updated",
 				mapping  : "updated",
-				style    : "text-align: right;"
+				style    : "text-align: right;"*/
 			}],
 			listeners: {
 				beforeselect: function(dataview, nodes, selections) {
