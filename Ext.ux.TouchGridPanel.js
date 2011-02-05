@@ -33,10 +33,6 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 
 		this.dockedItems.push(this.buildHeader());
 
-		this.store.on("datachanged", function() {
-			this.dataview.scroller.moveTo(0, 0);
-		}, this, { single: true });
-
 		Ext.ux.TouchGridPanel.superclass.initComponent.call(this);
 	},
 
