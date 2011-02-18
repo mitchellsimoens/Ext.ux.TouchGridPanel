@@ -9,7 +9,16 @@ Ext.setup({
 			fields     : [
 		        "company",
 		        "price",
-		        "change",
+		        {
+		        	name: "change",
+		        	convert: function(val, rec) {
+		        		var color = "00FF00";
+		        		if (val < 0) {
+		        			color = "FF0000";
+		        		}
+		        		return "<span style='color:#" + color + ";'>" + val + "</span>";
+		        	}
+		        },
 		        "pct",
 		        "updated"
 			]
@@ -66,11 +75,11 @@ Ext.setup({
 				header   : "Price",
 				mapping  : "price",
 				style    : "text-align: center;"
-			/*},{
+			},{
 				header   : "Change",
 				mapping  : "change",
 				cls      : "centered-cell"
-			},{
+			/*},{
 				header   : "% Change",
 				mapping  : "pct",
 				cls      : "centered-cell"*/

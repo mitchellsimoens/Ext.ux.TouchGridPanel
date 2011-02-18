@@ -32,7 +32,6 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		}
 
 		this.header = new Ext.Component(this.buildHeader());
-
 		this.dockedItems.push(this.header);
 
 		Ext.ux.TouchGridPanel.superclass.initComponent.call(this);
@@ -202,6 +201,20 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				width   = flex * cellWidth / 100 * headerWidth;
 			cellEl.setWidth(width);
 		}
+	},
+
+	scrollToRow: function(index) {
+		var el       = this.getEl(),
+			rows     = el.query("tr.x-grid-row"),
+			rowEl    = Ext.get(rows[index]),
+			scroller = this.dataview.scroller;
+
+		var pos = {
+			x: 0,
+			y: rowEl.dom.offsetTop
+		};
+
+		scroller.scrollTo(pos, true);
 	}
 });
 
