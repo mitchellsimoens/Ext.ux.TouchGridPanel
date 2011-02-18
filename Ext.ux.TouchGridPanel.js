@@ -123,6 +123,20 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 					'</tpl>',
 				'</table>'
 			),
+			prepareData: function(data) {
+				var column,
+					i = 0,
+					ln = colModel.length;
+
+				for (; i < ln; i++) {
+					column = colModel[i];
+					if (typeof col.renderer === "function") {
+						data[column.mapping] = column.renderer.apply(this, [data[column.mapping]]);
+					}
+				}
+
+				return data;
+			},
 			bubbleEvents : [
 				"beforeselect",
 				"containertap",
