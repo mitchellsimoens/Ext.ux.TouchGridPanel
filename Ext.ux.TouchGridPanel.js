@@ -130,7 +130,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 
 				for (; i < ln; i++) {
 					column = colModel[i];
-					if (typeof col.renderer === "function") {
+					if (typeof column.renderer === "function") {
 						data[column.mapping] = column.renderer.apply(this, [data[column.mapping]]);
 					}
 				}
