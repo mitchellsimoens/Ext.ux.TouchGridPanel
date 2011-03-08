@@ -22,6 +22,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	layout        : "fit",
 
 	multiSelect   : false,
+	scroll        : "vertical",
 
 	initComponent : function() {
 		this.dataview = this.buildDataView();
@@ -90,8 +91,9 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 
 	buildDataView : function() {
-		var colModel  = this.colModel,
-			colNum    = this.getColNum(false),
+		var me        = this,
+			colModel  = me.colModel,
+			colNum    = me.getColNum(false),
 			colTpl    = '<tr class="x-grid-row">',
 			cellWidth = 100/colNum;
 
@@ -113,9 +115,10 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		colTpl += '</tr>';
 
 		return new Ext.DataView({
-			store        : this.store,
+			store        : me.store,
 			itemSelector : "tr.x-grid-row",
-			simpleSelect : this.multiSelect,
+			simpleSelect : me.multiSelect,
+			scroll       : me.scroll,
 			tpl          : new Ext.XTemplate(
 				'<table style="width: 100%;">',
 					'<tpl for=".">',
@@ -123,7 +126,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 					'</tpl>',
 				'</table>'
 			),
-			prepareData: function(data) {
+			prepareData  : function(data) {
 				var column,
 					i = 0,
 					ln = colModel.length;
@@ -131,7 +134,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				for (; i < ln; i++) {
 					column = colModel[i];
 					if (typeof column.renderer === "function") {
-						data[column.mapping] = column.renderer.apply(this, [data[column.mapping]]);
+						data[column.mapping] = column.renderer.apply(me, [data[column.mapping]]);
 					}
 				}
 
