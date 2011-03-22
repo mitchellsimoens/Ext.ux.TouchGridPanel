@@ -1,17 +1,4 @@
 /*
-    Author       : Mitchell Simoens
-    Site         : http://simoens.org/Sencha-Projects/demos/
-    Contact Info : mitchellsimoens@gmail.com
-    Purpose      : Creation of a grid for Sencha Touch
-
-	License      : GPL v3 (http://www.gnu.org/licenses/gpl.html)
-    Warranty     : none
-    Price        : free
-    Version      : 2.0b1
-    Date         : 1/31/2011
-*/
-
-/*
  * Because of limitation of the current WebKit implementation of CSS3 column layout,
  * I have decided to revert back to using table.
  */
@@ -25,22 +12,34 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	scroll        : "vertical",
 
 	initComponent : function() {
-		this.dataview = this.buildDataView();
-		this.items = this.dataview;
+		var me = this;
 
-		if (!Ext.isArray(this.dockedItems)) {
-			this.dockedItems = [];
+		me.items = me.dataview = me.buildDataView();
+
+		if (!Ext.isArray(me.dockedItems)) {
+			me.dockedItems = [];
 		}
 
-		this.header = new Ext.Component(this.buildHeader());
-		this.dockedItems.push(this.header);
+		me.header = new Ext.Component(me.buildHeader());
+		me.dockedItems.push(me.header);
 
-		Ext.ux.TouchGridPanel.superclass.initComponent.call(this);
+		Ext.ux.TouchGridPanel.superclass.initComponent.call(me);
+
+		var store = me.store;
+
+		store.on("update", me.dispatchDataChanged, me);
+	},
+
+	dispatchDataChanged: function(store, rec, operation) {
+		var me = this;
+
+		me.fireEvent("storeupdate", store, rec, operation);
 	},
 
 	buildHeader   : function() {
-		var colModel  = this.colModel,
-			colNum    = this.getColNum(false),
+		var me        = this,
+			colModel  = me.colModel,
+			colNum    = me.getColNum(false),
 			cellWidth = 100/colNum,
 			colTpl    = '<table class="x-grid-header">';
 
@@ -62,30 +61,33 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		colTpl += '</table>';
 
 		return {
-			dock  : "top",
-			html  : colTpl,
-			listeners: {
-				scope: this,
-				afterrender: this.initHeaderEvents
+			dock      : "top",
+			html      : colTpl,
+			listeners : {
+				scope       : me,
+				afterrender : me.initHeaderEvents
 			}
 		};
 	},
 
 	initHeaderEvents: function(cmp) {
-		var el = cmp.getEl();
-		el.on("click", this.handleHeaderClick, this);
+		var me = this,
+			el = cmp.getEl();
+
+		el.on("click", me.handleHeaderClick, me);
 	},
 
 	handleHeaderClick: function(e, t) {
 		e.stopEvent();
 
-		var el = Ext.get(t);
-		var mapping = el.getAttribute("mapping");
+		var me      = this,
+			el      = Ext.get(t),
+			mapping = el.getAttribute("mapping");
 
 		if (typeof mapping === "string") {
-			this.store.sort(mapping);
+			me.store.sort(mapping);
 			el.set({
-				sort: this.store.sortToggle[mapping]
+				sort : me.store.sortToggle[mapping]
 			});
 		}
 	},
@@ -94,7 +96,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		var me        = this,
 			colModel  = me.colModel,
 			colNum    = me.getColNum(false),
-			colTpl    = '<tr class="x-grid-row">',
+			colTpl    = '<tr class="x-grid-row {isDirty:this.isRowDirty(parent)}">',
 			cellWidth = 100/colNum;
 
 		for (var i = 0; i < colModel.length; i++) {
@@ -110,7 +112,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				cls += "x-grid-col-hidden";
 			}
 
-			colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-col-' + col.mapping + ' ' + cls + '" style="' + style + '" mapping="' + col.mapping + '">{' + col.mapping + '}</td>';
+			colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-col-' + col.mapping + ' ' + cls + ' {isDirty:this.isCellDirty(parent)}" style="' + style + '" mapping="' + col.mapping + '" rowIndex="{rowIndex}">{' + col.mapping + '}</td>';
 		}
 		colTpl += '</tr>';
 
@@ -124,12 +126,22 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 					'<tpl for=".">',
 						colTpl,
 					'</tpl>',
-				'</table>'
+				'</table>',
+				{
+					isRowDirty: function(dirty, data) {
+						return dirty ? "x-grid-row-dirty" : "";
+					},
+					isCellDirty: function(dirty, data) {
+						return dirty ? "x-grid-cell-dirty" : "";
+					}
+				}
 			),
-			prepareData  : function(data) {
+			prepareData  : function(data, index, record) {
 				var column,
-					i = 0,
+					i  = 0,
 					ln = colModel.length;
+
+				data.dirtyFields = {};
 
 				for (; i < ln; i++) {
 					column = colModel[i];
@@ -137,6 +149,10 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 						data[column.mapping] = column.renderer.apply(me, [data[column.mapping]]);
 					}
 				}
+
+				data.isDirty = record.dirty;
+
+				data.rowIndex = index;
 
 				return data;
 			},
@@ -153,7 +169,8 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 
 	// hidden = true to count all columns
 	getColNum     : function(hidden) {
-		var colModel = this.colModel,
+		var me       = this,
+			colModel = me.colModel,
 			colNum   = 0;
 
 		for (var i = 0; i < colModel.length; i++) {
@@ -168,8 +185,10 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 
 	getMappings: function() {
-		var mappings = {},
-			colModel = this.colModel;
+		var me       = this,
+			mappings = {},
+			colModel = me.colModel;
+
 		for (var i = 0; i < colModel.length; i++) {
 			mappings[colModel[i].mapping] = i
 		}
@@ -178,12 +197,14 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 	},
 
 	toggleColumn: function(index) {
+		var me = this;
+
 		if (typeof index === "string") {
-			var mappings = this.getMappings();
+			var mappings = me.getMappings();
 			index = mappings[index];
 		}
-		var el      = this.getEl(),
-			mapping = this.colModel[index].mapping,
+		var el      = me.getEl(),
+			mapping = me.colModel[index].mapping,
 			cells   = el.query("td.x-grid-col-"+mapping);
 
 		for (var c = 0; c < cells.length; c++) {
@@ -197,18 +218,18 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 			}
 		}
 
-		this.updateWidths();
+		me.updateWidths();
 	},
 
 	updateWidths: function() {
-		var el          = this.getEl(),
-			headerWidth = this.header.getEl().getWidth(),
-			colModel    = this.colModel,
+		var me          = this,
+			el          = me.getEl(),
+			headerWidth = me.header.getEl().getWidth(),
+			colModel    = me.colModel,
 			cells       = el.query("td.x-grid-cell"),
-			colNum      = this.getColNum(false),
-			cellWidth   = 100 / colNum;
-
-		var mappings = this.getMappings();
+			colNum      = me.getColNum(false),
+			cellWidth   = 100 / colNum,
+			mappings    = me.getMappings();
 
 		for (var c = 0; c < cells.length; c++) {
 			var cellEl  = Ext.get(cells[c]),
@@ -216,15 +237,17 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				col     = colModel[mappings[mapping]],
 				flex    = col.flex || 1,
 				width   = flex * cellWidth / 100 * headerWidth;
+
 			cellEl.setWidth(width);
 		}
 	},
 
 	scrollToRow: function(index) {
-		var el       = this.getEl(),
+		var me       = this,
+			el       = me.getEl(),
 			rows     = el.query("tr.x-grid-row"),
 			rowEl    = Ext.get(rows[index]),
-			scroller = this.dataview.scroller;
+			scroller = me.dataview.scroller;
 
 		var pos = {
 			x: 0,
@@ -232,6 +255,39 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 		};
 
 		scroller.scrollTo(pos, true);
+	},
+
+	getView: function() {
+		var me = this;
+
+		return me.dataview;
+	},
+
+	bindStore: function(store) {
+		var me   = this,
+			view = me.getView();
+
+		view.bindStore(store);
+	},
+
+	getStore: function() {
+		var me   = this,
+			view = me.getView();
+
+		return view.getStore();
+	},
+
+	getRow: function(index) {
+		var me = this;
+		if (typeof index === "object") {
+			var store = me.getStore(),
+				index = store.indexOf(index);
+		}
+
+		var el   = me.getEl(),
+			rows = el.query("tr");
+
+		return rows[index+1];
 	}
 });
 
