@@ -140,21 +140,22 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				var column,
 					i  = 0,
 					ln = colModel.length;
-
-				data.dirtyFields = {};
-
+				var prepare_data = {};
+				prepare_data.dirtyFields = {};
 				for (; i < ln; i++) {
+
 					column = colModel[i];
 					if (typeof column.renderer === "function") {
-						data[column.mapping] = column.renderer.apply(me, [data[column.mapping]]);
+						prepare_data[column.mapping] = column.renderer.apply(me, [data[column.mapping],column, record, index]);
+					} else {
+						prepare_data[column.mapping] = data[column.mapping];
 					}
 				}
 
-				data.isDirty = record.dirty;
+				prepare_data.isDirty = record.dirty;
 
-				data.rowIndex = index;
-
-				return data;
+				prepare_data.rowIndex = index;
+				return prepare_data;
 			},
 			bubbleEvents : [
 				"beforeselect",
