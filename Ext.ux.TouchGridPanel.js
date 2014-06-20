@@ -55,7 +55,7 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				cls += "x-grid-col-hidden";
 			}
 
-			colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-hd-cell x-grid-col-' + col.mapping + ' ' + cls + '" mapping="' + col.mapping + '">' + col.header + '</td>';
+                      	colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-hd-cell x-grid-col-' + col.mapping + ' ' + cls + '" mapping="' + col.mapping + '">' + col.header + '</td>';
 		}
 		colTpl += '    </tr>';
 		colTpl += '</table>';
@@ -112,7 +112,18 @@ Ext.ux.TouchGridPanel = Ext.extend(Ext.Panel, {
 				cls += "x-grid-col-hidden";
 			}
 
+                        //  support image in column data
+                        if (col.image) {
+                                colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-col-' +
+                                col.mapping + ' ' + cls +
+                                ' {isDirty:this.isCellDirty(parent)}" style="' + style +
+                                '" mapping="' + col.mapping +
+                                '" rowIndex="{rowIndex}"><img width=20 src="{' +
+                                     col.mapping +
+                                '}"</td>';
+                        } else {
 			colTpl += '<td width="' + width + '%" class="x-grid-cell x-grid-col-' + col.mapping + ' ' + cls + ' {isDirty:this.isCellDirty(parent)}" style="' + style + '" mapping="' + col.mapping + '" rowIndex="{rowIndex}">{' + col.mapping + '}</td>';
+                        }
 		}
 		colTpl += '</tr>';
 
